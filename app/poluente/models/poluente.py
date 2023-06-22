@@ -18,3 +18,4 @@ class Poluente(Base, TimestampMixin):
     qualidade = Column(Unicode(50))
     situacao_rede = Column(Unicode(50))
     tipo_rede = Column(Unicode(50))
+

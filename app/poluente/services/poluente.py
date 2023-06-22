@@ -3,6 +3,7 @@ from typing import Optional, List
 from sqlalchemy import select
 
 from app.poluente.models import Poluente
+from app.poluente.repository.poluente_repository import PoluenteRepository
 from core.db import session
 
 
@@ -26,3 +27,12 @@ class PoluenteService:
         query = query.limit(limit)
         result = await session.execute(query)
         return result.scalars().all()
+    async def get_poluente_by_id(
+            self,
+            id: int = None
+    ) -> Poluente:
+        return await PoluenteRepository().get_by_id(id=id)
+
+    async def count(self) -> Poluente:
+        return await PoluenteRepository().count()
+

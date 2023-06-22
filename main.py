@@ -4,6 +4,7 @@ import click
 import uvicorn
 
 from core.config import config
+from app.server import app
 
 
 @click.command()
