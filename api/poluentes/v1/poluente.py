@@ -15,7 +15,7 @@ from core.fastapi.dependencies import (
 
 poluente_router = APIRouter()
 _poluenteService = PoluenteService()
-
+_draw = 1
 
 @poluente_router.get(
     "",
@@ -25,19 +25,20 @@ _poluenteService = PoluenteService()
     dependencies=[Depends(PermissionDependency([IsAdmin]))],
 )
 async def get_poluente_list(
-        limit: int = Query(10, description="Limit"),
+        length: int = Query(10, description="quantidade de registros que devem retornar"),
         prev: int = Query(None, description="Prev ID"),
+        start: int = Query(1, description="Página atual"),
 ):
     poluentePagination: PoluentePagination = PoluentePagination(
         data=[],
-        draw=1,
+        draw=_draw+1,
         recordsTotal=1,
         recordsFiltered=1
     )
 
-    poluentePagination.data = await _poluenteService.get_poluente_list(limit=limit, prev=prev)
-    poluentePagination.draw = 1
+    poluentePagination.data = await _poluenteService.get_poluente_list(limit=length, prev=prev, start=start)
     poluentePagination.recordsTotal = await _poluenteService.count()
+    poluentePagination.recordsFiltered = poluentePagination.recordsTotal
 
     return poluentePagination
 

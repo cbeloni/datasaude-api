@@ -1,21 +1,21 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
 
 class PoluenteBase(BaseModel):
-    id: int = Field(..., description="Id do banco")
-    data: str = Field(..., description="Data coleta do poluente")
-    data_atual: datetime = Field(..., description="Data inclusão banco")
-    endereco: str = Field(..., description="endereço da coleta do poluente")
-    indice: int = Field(..., description="índice poluente")
-    municipio: str = Field(..., description="municipio da coleta do poluente")
-    nome: str = Field(..., description="Nome da estação de coleta do poluente")
-    poluente: str = Field(..., description="Classificação do poluente")
-    qualidade: str = Field(..., description="Qualidade do ar")
-    situacao_rede: str = Field(..., description="Situação da estação de coleta")
-    tipo_rede: str = Field(..., description="Tipo de estação de coleta")
+    id: Optional[int] = Field(None, description="Id do banco")
+    data: Optional[str] = Field(None, description="Data coleta do poluente")
+    data_atual: Optional[datetime] = Field(None, description="Data inclusão banco")
+    endereco: Optional[str] = Field(None, description="endereço da coleta do poluente")
+    indice: Optional[int] = Field(None, description="índice poluente")
+    municipio: Optional[str] = Field(None, description="municipio da coleta do poluente")
+    nome: Optional[str] = Field(None, description="Nome da estação de coleta do poluente")
+    poluente: Optional[str] = Field(None, description="Classificação do poluente")
+    qualidade: Optional[str] = Field(None, description="Qualidade do ar")
+    situacao_rede: Optional[str] = Field(None, description="Situação da estação de coleta")
+    tipo_rede: Optional[str] = Field(None, description="Tipo de estação de coleta")
 
     class Config:
         orm_mode = True

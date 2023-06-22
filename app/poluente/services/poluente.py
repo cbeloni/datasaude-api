@@ -1,6 +1,6 @@
 from typing import Optional, List
 
-from sqlalchemy import select
+from sqlalchemy import select, desc, asc
 
 from app.poluente.models import Poluente
 from app.poluente.repository.poluente_repository import PoluenteRepository
@@ -13,18 +13,19 @@ class PoluenteService:
 
     async def get_poluente_list(
         self,
-        limit: int = 12,
+        limit: int = None,
         prev: Optional[int] = None,
+        start: int = 0
     ) -> List[Poluente]:
         query = select(Poluente)
 
         if prev:
             query = query.where(Poluente.id < prev)
 
-        if limit > 12:
-            limit = 12
+        if limit > 1000:
+            limit = 1000
 
-        query = query.limit(limit)
+        query = query.offset(start).limit(limit).order_by(desc(Poluente.id))
         result = await session.execute(query)
         return result.scalars().all()
     async def get_poluente_by_id(
