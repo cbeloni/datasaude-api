@@ -28,7 +28,12 @@ jobs:
             git clone https://${{ secrets.GIT_USER }}:${{ secrets.GIT_TOKEN }}@github.com/cbeloni/datasaude-api.git
             echo "Criando .env"
             cat <<EOF > datasaude-api/.env
-              ${{ secrets.ENV }}              
+              MYSQL_HOST='${{ secrets.MYSQL_HOST }}'
+              MYSQL_ROOT_PASSWORD='${{ secrets.MYSQL_ROOT_PASSWORD }}'
+              MYSQL_DATABASE='${{ secrets.MYSQL_DATABASE }}'
+              MYSQL_USER='${{ secrets.MYSQL_USER }}'
+              MYSQL_PASSWORD='${{ secrets.MYSQL_PASSWORD }}'
+              MYSQL_VOLUME='${{ secrets.MYSQL_VOLUME }}'
             EOF
             echo "Buildando projeto"
             cd datasaude-api
