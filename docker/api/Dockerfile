@@ -1,12 +1,13 @@
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
-MAINTAINER Hide <padocon@naver.com>
+FROM python:3
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 COPY . /home
 WORKDIR /home
 ENV ENV=dev
-RUN pip install "poetry==1.2.1"
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-dev
+RUN pip install "poetry"
+RUN poetry config virtualenvs.create false
+RUN poetry install --no-dev
 ENV DOCKERIZE_VERSION v0.6.1
 RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
     && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \

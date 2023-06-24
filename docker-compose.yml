@@ -9,23 +9,24 @@ services:
     hostname: api
     ports:
       - '8000:8000'
-    networks:
-      - backend
     tty: true
-    depends_on:
-      - db
     volumes:
       - $PWD:/home
   db:
-    build:
-      context: .
-      dockerfile: docker/db/Dockerfile
-    container_name: db
-    hostname: db
-    ports:
-      - '3306:3306'
-    networks:
-      - backend
+      image: mysql:latest
+      restart: always
+      hostname: db
+      container_name: db
+      environment:
+        MYSQL_HOST: ${MYSQL_HOST}
+        MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+        MYSQL_DATABASE: ${MYSQL_DATABASE}
+        MYSQL_USER: ${MYSQL_USER}
+        MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      volumes:
+        - ${MYSQL_VOLUME}:/var/lib/mysql
+      ports:
+        - "3306:3306"
   redis:
     build:
       context: .
@@ -34,9 +35,10 @@ services:
     hostname: redis
     ports:
       - '6379:6379'
-    networks:
-      - backend
 
 networks:
-  backend:
-    driver: 'bridge'
+  default:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 193.168.0.0/16
