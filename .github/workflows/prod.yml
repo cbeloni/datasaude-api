@@ -28,7 +28,7 @@ jobs:
             git clone https://${{ secrets.GIT_USER }}:${{ secrets.GIT_TOKEN }}@github.com/cbeloni/datasaude-api.git
             echo "Criando .env"
             cat <<EOF > datasaude-api/.env
-              '${{ secrets.ENV }}'              
+              ${{ secrets.ENV }}              
             EOF
             echo "Buildando projeto"
             cd datasaude-api

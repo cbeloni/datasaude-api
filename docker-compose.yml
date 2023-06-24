@@ -8,7 +8,7 @@ services:
     container_name: api
     hostname: api
     ports:
-      - '8000:8000'
+      - '80:8000'
     tty: true
     volumes:
       - $PWD:/home
