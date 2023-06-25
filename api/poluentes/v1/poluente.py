@@ -15,7 +15,17 @@ from core.fastapi.dependencies import (
 
 poluente_router = APIRouter()
 _poluenteService = PoluenteService()
-_draw = 1
+
+class DrawConter:
+    def __init__(self):
+        self._counter = 0
+
+    @property
+    def draw(self):
+        self._counter += 1
+        return self._counter
+
+_counter = DrawConter()
 
 @poluente_router.get(
     "",
@@ -31,7 +41,7 @@ async def get_poluente_list(
 ):
     poluentePagination: PoluentePagination = PoluentePagination(
         data=[],
-        draw=_draw+1,
+        draw=_counter.draw,
         recordsTotal=1,
         recordsFiltered=1
     )
