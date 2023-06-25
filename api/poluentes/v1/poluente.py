@@ -22,7 +22,7 @@ _draw = 1
     response_model=PoluentePagination,
     response_model_exclude={},
     responses={"400": {"model": ExceptionResponseSchema}},
-    dependencies=[Depends(PermissionDependency([IsAdmin]))],
+    # dependencies=[Depends(PermissionDependency([IsAdmin]))],
 )
 async def get_poluente_list(
         length: int = Query(10, description="quantidade de registros que devem retornar"),
