@@ -2,7 +2,7 @@ from typing import List
 
 from fastapi import APIRouter, Depends, Query, Path
 
-from api.poluentes.v1.response.poluente import PoluenteBase, PoluentePagination
+from api.poluentes.v1.response.poluente import PoluenteBase, PoluentePagination, PoluenteRequest
 from app.poluente.services import PoluenteService
 from app.user.schemas import (
     ExceptionResponseSchema,
@@ -66,3 +66,30 @@ async def get_poluente_by_id(
         id: int = Path(..., description="ID"),
 ):
     return await PoluenteService().get_poluente_by_id(id)
+
+@poluente_router.post(
+    "",
+    response_model=PoluentePagination,
+    response_model_exclude={},
+    responses={"400": {"model": ExceptionResponseSchema}},
+    # dependencies=[Depends(PermissionDependency([IsAdmin]))],
+)
+async def post_poluente_list(payload: PoluenteRequest):
+    poluentePagination: PoluentePagination = PoluentePagination(
+        Counter=_counter.draw,
+        TotalRecordCount=0,
+        FilteredRecordCount=0,
+        TotalPages=0,
+        CurrentPage=0,
+        Payload=[]
+    )
+
+    poluentePagination.Payload = await _poluenteService.get_poluente_list(limit=payload.take,
+                                                                          prev=payload.prev,
+                                                                          start=payload.skip)
+    poluentePagination.TotalRecordCount = await _poluenteService.count()
+    poluentePagination.FilteredRecordCount = poluentePagination.TotalRecordCount
+    poluentePagination.TotalPages = poluentePagination.TotalRecordCount / payload.take
+    poluentePagination.CurrentPage = (payload.skip // payload.take) + 1
+
+    return poluentePagination

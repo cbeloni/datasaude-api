@@ -21,10 +21,14 @@ class PoluenteBase(BaseModel):
         orm_mode = True
 
 class PoluentePagination(BaseModel):
-    draw: int = Field(..., description="Página atual")
-    recordsTotal: int = Field(..., description="Total de registros")
-    recordsFiltered: int = Field(..., description="Total filtrado")
-    data: List[PoluenteBase] = Field(..., description="Dados dos poluentes")
+    Counter: Optional[int] = Field(None, description="Contador de versão")
+    TotalRecordCount: Optional[int] = Field(None, description="Total de registros")
+    FilteredRecordCount: Optional[int] = Field(None, description="Total filtrado")
+    TotalPages: Optional[int] = Field(None, description="Total filtrado")
+    CurrentPage: Optional[int] = Field(None, description="Página atual")
+    Payload: Optional[List[PoluenteBase]] = Field(None, description="Dados dos poluentes")
+    AggregationPayload: Optional[List] = Field(None, description="AggregationPayload")
+
 
 class PoluenteCreate(PoluenteBase):
     pass
@@ -36,3 +40,9 @@ class PoluenteUpdate(PoluenteBase):
 
 class Poluente(PoluenteBase):
     id: int
+
+class PoluenteRequest(BaseModel):
+    take: int = Field(..., description="quantos registros pegar")
+    prev: Optional[int] = Field(None, description="a partir do registro")
+    skip: int = Field(..., description="quantidade de registros para pular")
+    columns: list = Field(..., description="colunas da tabela")
