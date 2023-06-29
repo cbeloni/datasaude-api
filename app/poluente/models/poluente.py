@@ -19,3 +19,6 @@ class Poluente(Base, TimestampMixin):
     situacao_rede = Column(Unicode(50))
     tipo_rede = Column(Unicode(50))
 
+    @classmethod
+    def from_poluente_base(cls, p: api.poluentes.v1.response.poluente.PoluenteBase):
+        return cls(data=p.data, endereco=p.endereco)

@@ -93,3 +93,14 @@ async def post_poluente_list(payload: PoluenteRequest):
     poluentePagination.CurrentPage = (payload.skip // payload.take) + 1
 
     return poluentePagination
+
+@poluente_router.post(
+    "/salvar",
+    response_model=str,
+    response_model_exclude={"id"},
+    responses={"400": {"model": ExceptionResponseSchema}},
+    # dependencies=[Depends(PermissionDependency([IsAdmin]))],
+)
+async def save_poluente(poluenteBase: PoluenteBase):
+    await PoluenteService().save(poluente)
+    return "Sucesso"

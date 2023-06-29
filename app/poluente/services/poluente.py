@@ -2,7 +2,7 @@ from typing import Optional, List
 
 from sqlalchemy import select, desc, asc
 
-from app.poluente.models import Poluente
+from api.poluentes.v1.request.poluente import PoluenteBase
 from app.poluente.repository.poluente_repository import PoluenteRepository
 from core.db import session
 
@@ -37,3 +37,7 @@ class PoluenteService:
     async def count(self) -> Poluente:
         return await PoluenteRepository().count()
 
+    async def save(self, poluente: Poluente = None, poluente_base: PoluenteBase = None):
+        if poluente_base:
+            poluente = Poluente.from_poluente_base(poluente_base)
+        return await PoluenteRepository().save(poluente)

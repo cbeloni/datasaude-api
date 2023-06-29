@@ -3,7 +3,6 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-
 class PoluenteBase(BaseModel):
     id: Optional[int] = Field(None, description="Id do banco")
     data: Optional[str] = Field(None, description="Data coleta do poluente")
@@ -46,3 +45,4 @@ class PoluenteRequest(BaseModel):
     prev: Optional[int] = Field(None, description="a partir do registro")
     skip: int = Field(..., description="quantidade de registros para pular")
     columns: list = Field(..., description="colunas da tabela")
+
