@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.poluente.integrations import cetesb
@@ -15,9 +16,9 @@ def poluente_job_task():
         p: Poluente = Poluente(**kwargs)
         await PoluenteRepository().save(p)
 
-    print('salvando')
+    logging.info('Starting job')
     asyncio.run(salvar(endereco='Rua arujá 2'))
-    print('salvo')
+    logging.info('Finish job')
 
 
 def start():
