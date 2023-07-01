@@ -9,12 +9,6 @@ from core.config import config
 from app.server import app
 from fastapi.middleware.cors import CORSMiddleware
 
-logging.basicConfig(filename="datasaude-api.log",
-                    filemode='a',
-                    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
-                    datefmt='%H:%M:%S',
-                    level=logging.DEBUG)
-
 logging.info("Starting app")
 
 app.add_middleware(
