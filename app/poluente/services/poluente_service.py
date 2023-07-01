@@ -3,6 +3,7 @@ from typing import Optional, List
 from sqlalchemy import select, desc, asc
 
 from api.poluentes.v1.request.poluente import PoluenteBase
+from app.poluente.models import Poluente
 from app.poluente.repository.poluente_repository import PoluenteRepository
 from core.db import session
 
@@ -26,8 +27,8 @@ class PoluenteService:
             limit = 1000
 
         query = query.offset(start).limit(limit).order_by(desc(Poluente.id))
-        result = await session.execute(query)
-        return result.scalars().all()
+
+        return (await session.execute(query)).scalars().all()
     async def get_poluente_by_id(
             self,
             id: int = None
@@ -37,7 +38,5 @@ class PoluenteService:
     async def count(self) -> Poluente:
         return await PoluenteRepository().count()
 
-    async def save(self, poluente: Poluente = None, poluente_base: PoluenteBase = None):
-        if poluente_base:
-            poluente = Poluente.from_poluente_base(poluente_base)
-        return await PoluenteRepository().save(poluente)
+    async def save(self, poluente: Poluente) -> None:
+        await PoluenteRepository().save(poluente)

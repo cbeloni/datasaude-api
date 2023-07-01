@@ -1,12 +1,10 @@
-from typing import List
-
-from fastapi import APIRouter, Depends, Query, Path
+from fastapi import APIRouter, Depends, Query, Path, Response
 
 from api.poluentes.v1.response.poluente import PoluenteBase, PoluentePagination, PoluenteRequest
+from app.poluente.models import Poluente
 from app.poluente.services import PoluenteService
 from app.user.schemas import (
     ExceptionResponseSchema,
-    GetUserListResponseSchema,
 )
 from core.fastapi.dependencies import (
     PermissionDependency,
@@ -40,15 +38,16 @@ async def get_poluente_list(
         start: int = Query(1, description="Página atual"),
 ):
     poluentePagination: PoluentePagination = PoluentePagination(
-        data=[],
-        draw=_counter.draw,
-        recordsTotal=1,
-        recordsFiltered=1
+        Counter=_counter.draw,
     )
 
-    poluentePagination.data = await _poluenteService.get_poluente_list(limit=length, prev=prev, start=start)
-    poluentePagination.recordsTotal = await _poluenteService.count()
-    poluentePagination.recordsFiltered = poluentePagination.recordsTotal
+    poluentePagination.Payload = await _poluenteService.get_poluente_list(limit=length,
+                                                                          prev=prev,
+                                                                          start=start)
+    poluentePagination.TotalRecordCount = await _poluenteService.count()
+    poluentePagination.FilteredRecordCount = poluentePagination.TotalRecordCount
+    poluentePagination.TotalPages = poluentePagination.TotalRecordCount / length
+    poluentePagination.CurrentPage = (start // length) + 1
 
     return poluentePagination
 
@@ -65,7 +64,7 @@ async def get_poluente_by_id(
         prev: int = Query(None, description="Prev ID"),
         id: int = Path(..., description="ID"),
 ):
-    return await PoluenteService().get_poluente_by_id(id)
+    return await _poluenteService.get_poluente_by_id(id)
 
 @poluente_router.post(
     "",
@@ -76,12 +75,7 @@ async def get_poluente_by_id(
 )
 async def post_poluente_list(payload: PoluenteRequest):
     poluentePagination: PoluentePagination = PoluentePagination(
-        Counter=_counter.draw,
-        TotalRecordCount=0,
-        FilteredRecordCount=0,
-        TotalPages=0,
-        CurrentPage=0,
-        Payload=[]
+        Counter=_counter.draw
     )
 
     poluentePagination.Payload = await _poluenteService.get_poluente_list(limit=payload.take,
@@ -96,11 +90,10 @@ async def post_poluente_list(payload: PoluenteRequest):
 
 @poluente_router.post(
     "/salvar",
-    response_model=str,
-    response_model_exclude={"id"},
     responses={"400": {"model": ExceptionResponseSchema}},
     # dependencies=[Depends(PermissionDependency([IsAdmin]))],
 )
 async def save_poluente(poluenteBase: PoluenteBase):
-    await PoluenteService().save(poluente)
-    return "Sucesso"
+    poluente: Poluente = Poluente(**poluenteBase.dict())
+    await _poluenteService.save(poluente)
+    return Response(status_code=201)

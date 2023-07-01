@@ -2,6 +2,7 @@ from typing import TypeVar, Type, Optional, Generic
 
 from sqlalchemy import select, update, delete, func
 
+from core.db import Transactional
 from core.db.session import Base, session
 from core.repository.enum import SynchronizeSessionEnum
 
@@ -47,12 +48,12 @@ class BaseRepo(Generic[ModelType]):
         )
         await session.execute(query)
 
-    async def save(self, model: ModelType) -> ModelType:
-        saved = await session.add(model)
-        return saved
+    @Transactional()
+    async def save(self, model: ModelType) -> None:
+        session.add(model)
 
     async def count(self) -> int:
         query = select(func.count()).select_from(self.model)
         result = await session.execute(query)
         row = result.fetchone()
-        return row[0] if row else None
+        return row[0] if row else 0
