@@ -7,6 +7,7 @@ services:
       dockerfile: docker/api/Dockerfile
     container_name: api
     hostname: api
+    restart: always
     ports:
       - '80:8000'
     tty: true
@@ -33,6 +34,7 @@ services:
       dockerfile: docker/redis/Dockerfile
     container_name: redis
     hostname: redis
+    restart: always
     ports:
       - '6379:6379'
 
