@@ -37,5 +37,5 @@ jobs:
             EOF
             echo "Buildando projeto"
             cd datasaude-api
-            docker-compose down
-            docker-compose up -d --no-deps --build
+            docker-compose down api
+            docker-compose up -d --no-deps --build api
