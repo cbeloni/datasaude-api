@@ -8,12 +8,11 @@ from core.db import standalone_session
 
 
 
-def execute_get_capa():
+async def execute_get_capa(persist: bool = False):
 
     @standalone_session
-    async def salvar(**kwargs):
+    async def salvar(p: Poluente):
         try:
-            p: Poluente = Poluente(**kwargs)
             await PoluenteRepository().save(p)
         except Exception as e:
             # Registrar o erro em um log
@@ -32,19 +31,19 @@ def execute_get_capa():
         tipo_rede = feature['attributes']['Tipo_Rede']
         endereco = feature['attributes']['Endereco']
         indice = feature['attributes']['Indice']
-        poluente = feature['attributes']['POLUENTE']
+        poluente_attri = feature['attributes']['POLUENTE']
         municipio = feature['attributes']['Municipio']
 
-
-
-        asyncio.run(salvar(nome=nome,
-                           situacao_rede=situacao_rede,
-                           tipo_rede=tipo_rede,
-                           data=data,
-                           qualidade=qualidade,
-                           endereco=endereco,
-                           indice=indice,
-                           poluente=poluente,
-                           municipio=municipio))
+        poluente: Poluente = Poluente(nome=nome,
+                                      situacao_rede=situacao_rede,
+                                      tipo_rede=tipo_rede,
+                                      data=data,
+                                      qualidade=qualidade,
+                                      endereco=endereco,
+                                      indice=indice,
+                                      poluente=poluente_attri,
+                                      municipio=municipio)
+        if persist:
+            await salvar(poluente)
         poluentes.append(poluente)
     return poluentes

@@ -19,8 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-poluente_job.start()
-
 @click.command()
 @click.option(
     "--env",

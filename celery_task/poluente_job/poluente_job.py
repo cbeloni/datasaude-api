@@ -23,6 +23,6 @@ def poluente_job_task():
 
 def start():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(cetesb.execute_get_capa, 'interval', minutes=5)
+    # scheduler.add_job(cetesb.execute_get_capa, 'interval', minutes=5)
     # scheduler.add_job(poluente_job_task, 'interval', minutes=0.2)
     scheduler.start()

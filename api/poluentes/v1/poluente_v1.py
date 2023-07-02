@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query, Path, Response
 
 from api.poluentes.v1.response.poluente import PoluenteBase, PoluentePagination, PoluenteRequest
+from app.poluente.integrations import cetesb
 from app.poluente.models import Poluente
 from app.poluente.services import PoluenteService
 from app.user.schemas import (
@@ -65,6 +66,27 @@ async def get_poluente_by_id(
         id: int = Path(..., description="ID"),
 ):
     return await _poluenteService.get_poluente_by_id(id)
+
+
+@poluente_router.put(
+    "/cetesb",
+    response_model=PoluentePagination,
+    response_model_exclude={},
+    responses={"400": {"model": ExceptionResponseSchema}},
+    # dependencies=[Depends(PermissionDependency([IsAdmin]))],
+)
+async def get_poluente_cetesb(persist: bool = Query(False, description="true para gravar o resultado na base")):
+    poluentePagination: PoluentePagination = PoluentePagination(
+        Counter=_counter.draw,
+    )
+
+    poluentePagination.Payload = await cetesb.execute_get_capa(persist)
+    poluentePagination.TotalRecordCount = len(poluentePagination.Payload)
+    poluentePagination.FilteredRecordCount = poluentePagination.TotalRecordCount
+    poluentePagination.TotalPages = 1
+    poluentePagination.CurrentPage = 1
+
+    return poluentePagination
 
 @poluente_router.post(
     "",
