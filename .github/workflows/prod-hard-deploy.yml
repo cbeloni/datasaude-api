@@ -1,0 +1,41 @@
+name: Deploy with docker
+
+on:
+  workflow_dispatch:
+
+jobs:
+  hard-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: datasaude
+    steps:
+      - name: building app
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: 177.93.128.162
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          command_timeout: 5m
+          script: |
+            echo "Criando diretório"
+            mkdir -p ~/app
+            cd ~/app/
+            echo "Clone repositório"
+            [ -d datasaude-api ] && rm -rf datasaude-api
+            git clone https://${{ secrets.GIT_USER }}:${{ secrets.GIT_TOKEN }}@github.com/cbeloni/datasaude-api.git
+            echo "Criando .env"
+            cat <<EOF > datasaude-api/.env
+              MYSQL_HOST='${{ secrets.MYSQL_HOST }}'
+              MYSQL_ROOT_PASSWORD='${{ secrets.MYSQL_ROOT_PASSWORD }}'
+              MYSQL_DATABASE='${{ secrets.MYSQL_DATABASE }}'
+              MYSQL_USER='${{ secrets.MYSQL_USER }}'
+              MYSQL_PASSWORD='${{ secrets.MYSQL_PASSWORD }}'
+              MYSQL_VOLUME='${{ secrets.MYSQL_VOLUME }}'
+            EOF
+            echo "Buildando projeto"
+            cd datasaude-api
+            docker-compose stop
+            docker-compose down
+            docker system prune -a --force
+            docker-compose up -d
