@@ -59,7 +59,10 @@ Create a new migration
 ``` 
 alembic revision --autogenerate -m "Nome da Migração"
 ```
-
+Run migrations
+```
+alembic upgrade head 
+```
 
 ## Custom user for authentication
 
