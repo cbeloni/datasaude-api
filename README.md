@@ -53,6 +53,14 @@ Go to `core/config.py` and edit `WRITER_DB_URL` and `READER_DB_URL` in the confi
 
 If you need additional logic to use the database, refer to the `get_bind()` method of `RoutingClass`.
 
+### Alembic 
+
+Create a new migration
+``` 
+alembic revision --autogenerate -m "Nome da Migração"
+```
+
+
 ## Custom user for authentication
 
 ```python
