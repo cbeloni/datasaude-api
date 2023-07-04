@@ -16,3 +16,5 @@ class PoluenteScrap(Base, TimestampMixin):
     parametro = Column(Integer)
     file = Column(Unicode(50))
 
+    def dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}

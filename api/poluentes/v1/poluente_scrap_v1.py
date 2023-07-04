@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Query, Path, Response
 
+from api.poluentes.v1.request.poluente_scrap import PoluenteScrapRequest
 from api.poluentes.v1.response.poluente import PoluenteBase, PoluentePagination, PoluenteRequest
 from api.poluentes.v1.response.poluente_scrap import PoluenteScrapResponse
 from app.poluente.integrations import cetesb
@@ -28,3 +29,14 @@ async def get_poluente_scrap_by_id(
 ):
     return await _poluenteScrapService.get_poluente_scrap_by_id(id=id)
 
+@poluente_scrap_router.post(
+    "",
+    response_model=None,
+    response_model_exclude={},
+    responses={"400": {"model": ExceptionResponseSchema}},
+)
+async def post_poluente_scrap(
+        payload: PoluenteScrapRequest,
+):
+
+    return await _poluenteScrapService.save_poluente_scrap(poluente_scrap_request=payload)

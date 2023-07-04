@@ -1,3 +1,4 @@
+from api.poluentes.v1.request.poluente_scrap import PoluenteScrapRequest
 from app.poluente.models import PoluenteScrap
 from app.poluente.repository.poluente_scrap_repository import PoluenteScrapRepository
 
@@ -19,5 +20,6 @@ class PoluenteScrapService:
     async def delete_poluente_srap_by_id(self, id: int) -> None:
         await _poluenteScrapRepository.delete_by_id(id=id)
 
-    async def save_poluente_scrap(self, poluente_scrap: PoluenteScrap) -> None:
+    async def save_poluente_scrap(self, poluente_scrap_request: PoluenteScrapRequest) -> None:
+        poluente_scrap: PoluenteScrap = PoluenteScrap(**poluente_scrap_request.dict())
         return await _poluenteScrapRepository.save(poluente_scrap)
