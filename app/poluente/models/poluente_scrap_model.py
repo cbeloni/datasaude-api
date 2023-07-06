@@ -14,6 +14,7 @@ class PoluenteScrap(Base, TimestampMixin):
     i_tipo_dado = Column(Unicode(2))
     estacao = Column(Integer)
     parametro = Column(Integer)
+    status = Column(Unicode(50))
     file = Column(Unicode(50))
 
     def dict(self):
