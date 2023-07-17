@@ -12,7 +12,7 @@ jobs:
       - name: building app
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: 177.93.128.162
+          host: 177.93.130.51
           username: ubuntu
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
