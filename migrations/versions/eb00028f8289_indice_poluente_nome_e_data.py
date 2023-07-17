@@ -18,7 +18,7 @@ depends_on = None
 
 def upgrade():
     op.execute('COMMIT')
-    op.create_index('idx_poluente_nome_data', 'poluente', [sa.text('data', 'nome')], unique=True)
+    op.create_index('idx_poluente_nome_data', 'poluente', [sa.text('data') , sa.text('nome')], unique=True)
 
 
 def downgrade():
