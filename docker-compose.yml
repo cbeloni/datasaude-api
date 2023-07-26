@@ -15,7 +15,7 @@ services:
       - $PWD:/home
   db:
       image: mysql:latest
-      restart: always
+#      restart: always
       hostname: db
       container_name: db
       environment:
