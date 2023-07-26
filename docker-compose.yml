@@ -14,8 +14,8 @@ services:
     volumes:
       - $PWD:/home
   db:
-      image: mysql:latest
-#      restart: always
+      image: mysql:8.0.22
+      restart: always
       hostname: db
       container_name: db
       environment:
