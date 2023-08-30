@@ -12,6 +12,7 @@ from core.fastapi.dependencies import (
     IsAdmin,
 )
 from app.poluente.services.gestor_arquivos import enviar_arquivo
+from distutils import log
 
 poluente_router = APIRouter()
 _poluenteService = PoluenteService()
@@ -129,11 +130,14 @@ async def file_upload(
         content_type: str = Form(...),
         arquivo: UploadFile = File(...),
 ):
-    print('bucket_name: ' + bucket_name)
-    print('object_key: ' + object_key)
-    print('content_type: ' + content_type)
-    print('UploadFile: ' + str(arquivo))
+    log.info('bucket_name: ' + bucket_name)
+    log.info('object_key: ' + object_key)
+    log.info('content_type: ' + content_type)
+    log.info('UploadFile: ' + str(arquivo))
 
     file_data = await arquivo.read()
-    enviar_arquivo(bucket_name=bucket_name, file=file_data, object_name=object_key, content_type=content_type)
-    return Response(status_code=201)
+    try:
+        enviar_arquivo(bucket_name=bucket_name, file=file_data, object_name=object_key, content_type=content_type)
+        return Response(status_code=201)
+    except Exception as ex:
+        log.error("Falha ao enviar arquivo", ex)
