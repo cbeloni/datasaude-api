@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, Path, Response
+from fastapi import APIRouter, Depends, Query, Path, Response, File, Form, UploadFile
 
 from api.poluentes.v1.response.poluente import PoluenteBase, PoluentePagination, PoluenteRequest
 from app.poluente.integrations import cetesb
@@ -11,6 +11,7 @@ from core.fastapi.dependencies import (
     PermissionDependency,
     IsAdmin,
 )
+from app.poluente.services.gestor_arquivos import enviar_arquivo
 
 poluente_router = APIRouter()
 _poluenteService = PoluenteService()
@@ -118,4 +119,21 @@ async def post_poluente_list(payload: PoluenteRequest):
 async def save_poluente(poluenteBase: PoluenteBase):
     poluente: Poluente = Poluente(**poluenteBase.dict())
     await _poluenteService.save(poluente)
+    return Response(status_code=201)
+
+
+@poluente_router.post("/file-upload")
+async def file_upload(
+        bucket_name: str = Form(...),
+        object_key: str = Form(...),
+        content_type: str = Form(...),
+        arquivo: UploadFile = File(...),
+):
+    print('bucket_name: ' + bucket_name)
+    print('object_key: ' + object_key)
+    print('content_type: ' + content_type)
+    print('UploadFile: ' + str(arquivo))
+
+    file_data = await arquivo.read()
+    enviar_arquivo(bucket_name=bucket_name, file=file_data, object_name=object_key, content_type=content_type)
     return Response(status_code=201)
