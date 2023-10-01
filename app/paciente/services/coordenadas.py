@@ -34,7 +34,7 @@ def execute(address, provider):
                         "response": '{}', "components": '{}'}
         return response
     except Exception as e:
-        log.error("Erro ao obter coordenada", exc_info=True)
+        log.error("Erro ao obter coordenada: " + address + " provider: " + provider + " key: " + open_cage_api_key, exc_info=True)
 
 
     return {"latitude": '', "longitude": '', "acuracia": '', "x": '', "y": '', "response": '{}'}
