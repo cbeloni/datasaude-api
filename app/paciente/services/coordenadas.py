@@ -15,18 +15,21 @@ def execute(address, provider):
     try:
         response  = {}
         if provider == 'opencage':
-            latitude, longitude, acuracia, json_data = get_latitude_longitude_opencage(address)
+            latitude, longitude, acuracia, json_data, components = get_latitude_longitude_opencage(address)
             x, y = converte_coordenadas_UTM(latitude, longitude)
-            response = {"latitude": latitude, "longitude": longitude, "acuracia": acuracia, "x": x, "y": y, "response": str(json_data)}
+            response = {"latitude": latitude, "longitude": longitude, "acuracia": acuracia, "x": x, "y": y,
+                        "response": str(json_data)}
+            response.update(components)
         if provider == 'googlemaps':
-            latitude, longitude, acuracia, json_data = get_latitude_longitude_gmaps(address)
+            latitude, longitude, acuracia, json_data, components = get_latitude_longitude_gmaps(address)
             x, y = converte_coordenadas_UTM(latitude, longitude)
-            response = {"latitude": latitude, "longitude": longitude, "acuracia": acuracia, "x": x, "y": y, "response": str(json_data)}
+            response = {"latitude": latitude, "longitude": longitude, "acuracia": acuracia, "x": x, "y": y,
+                        "response": str(json_data)}
+            response.update(components)
         if provider == 'openstreetmap':
-            latitude, longitude, acuracia = get_free_coordenadas_utm_do_endereco(address)
-            x, y = converte_coordenadas_UTM(latitude, longitude)
-            response = {"latitude": latitude, "longitude": longitude, "acuracia": acuracia, "x": x, "y": y, "response": '{}'}
-
+            latitude, longitude, acuracia, x, y = get_free_coordenadas_utm_do_endereco(address)
+            response = {"latitude": latitude, "longitude": longitude, "acuracia": acuracia, "x": x, "y": y,
+                        "response": '{}', "components": '{}'}
         return response
     except Exception as e:
         log.error("Erro ao obter coordenada", e)
@@ -41,7 +44,9 @@ def get_latitude_longitude_opencage(address):
     latitude = results[0]['geometry']['lat']
     longitude = results[0]['geometry']['lng']
     confidence = results[0]['confidence']
-    return (latitude, longitude, confidence, json_data)
+    components = results[0]['components']
+    components['formatted'] = results[0]['formatted']
+    return (latitude, longitude, confidence, json_data, components)
 
 
 def converte_coordenadas_UTM(latitude, longitude):
@@ -87,6 +92,24 @@ def get_latitude_longitude_gmaps(address):
     results = json_data['results']
     location = results[0]['geometry']['location']
     location_type = results[0]['geometry']['location_type']
+    components = {}
+    for component in results[0]["address_components"]:
+        if "route" in component["types"]:
+            components['formatted'] = component["long_name"]
+        if "postal_code" in component["types"]:
+            components['postcode'] = component["long_name"]
+        if "sublocality" in component["types"]:
+            components['quarter'] = component["long_name"]
+        if "administrative_area_level_4" in component["types"]:
+            components['suburb'] = component["long_name"]
+        if "administrative_area_level_2" in component["types"]:
+            components['city'] = component["long_name"]
+        if "administrative_area_level_1" in component["types"]:
+            components['state'] = component["long_name"]
+        if "country" in component["types"]:
+            components['country'] = component["long_name"]
+
+
     latitude = location['lat']
     longitude = location['lng']
-    return latitude, longitude, location_type, json_data
+    return latitude, longitude, location_type, json_data, components

@@ -767,6 +767,23 @@ dotenv = ["python-dotenv (>=0.10.4)"]
 email = ["email-validator (>=1.0.3)"]
 
 [[package]]
+name = "pydash"
+version = "7.0.6"
+description = "The kitchen sink of Python utility libraries for doing \"stuff\" in a functional way. Based on the Lo-Dash Javascript library."
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pydash-7.0.6-py3-none-any.whl", hash = "sha256:10e506935953fde4b0d6fe21a88e17783cd1479256ae96f285b5f89063b4efd6"},
+    {file = "pydash-7.0.6.tar.gz", hash = "sha256:7d9df7e9f36f2bbb08316b609480e7c6468185473a21bdd8e65dda7915565a26"},
+]
+
+[package.dependencies]
+typing-extensions = ">=3.10,<4.6.0 || >4.6.0"
+
+[package.extras]
+dev = ["Sphinx", "black", "build", "coverage", "docformatter", "flake8", "flake8-black", "flake8-bugbear", "flake8-isort", "furo", "importlib-metadata (<5)", "invoke", "isort", "mypy", "pylint", "pytest", "pytest-cov", "pytest-mypy-testing", "sphinx-autodoc-typehints", "tox", "twine", "wheel"]
+
+[[package]]
 name = "pyjwt"
 version = "2.7.0"
 description = "JSON Web Token implementation in Python"
@@ -1266,4 +1283,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "8e944bc1095bdb2c6cf1312f63e6a0852f54b563b71ea6e24c94db24f046b1ab"
+content-hash = "31b0b3820f96ce41dc1d89b8a61b23a2142f25b759142515f7f81feff3c61a33"
