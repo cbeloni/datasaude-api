@@ -1,7 +1,7 @@
 import os
 import requests
 import pyproj
-from distutils import log
+import logging
 from geopy.geocoders import Nominatim
 
 from api.paciente.v1.response.paciente_coordenadas_response import CoordenadasResponse
@@ -9,6 +9,7 @@ from api.paciente.v1.response.paciente_coordenadas_response import CoordenadasRe
 open_cage_api_key = os.environ.get('OPEN_CAGE_API_KEY')
 google_maps_api_key = os.environ.get('GOOGLE_MAPS_API_KEY')
 
+log = logging.getLogger(__name__)
 
 def execute(address, provider):
 
@@ -32,7 +33,8 @@ def execute(address, provider):
                         "response": '{}', "components": '{}'}
         return response
     except Exception as e:
-        log.error("Erro ao obter coordenada", e)
+        log.error("Erro ao obter coordenada", exc_info=True)
+
 
     return {"latitude": '', "longitude": '', "acuracia": '', "x": '', "y": '', "response": '{}'}
 
