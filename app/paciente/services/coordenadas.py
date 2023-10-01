@@ -6,8 +6,8 @@ from geopy.geocoders import Nominatim
 
 from api.paciente.v1.response.paciente_coordenadas_response import CoordenadasResponse
 
-open_cage_api_key = os.environ.get('open_cage_api_key')
-google_maps_api_key = os.environ.get('google_maps_api_key')
+open_cage_api_key = os.environ.get('OPEN_CAGE_API_KEY')
+google_maps_api_key = os.environ.get('GOOGLE_MAPS_API_KEY')
 
 
 def execute(address, provider):
