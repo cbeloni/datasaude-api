@@ -5,7 +5,7 @@ description = "FastAPI Boilerplate"
 authors = ["Hide <padocon@naver.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 alembic = "^1.8.1"
 SQLAlchemy = {extras = ["asyncio"], version = "^1.4.40"}
 PyJWT = "^2.4.0"
@@ -24,6 +24,9 @@ python-dotenv = "^1.0.0"
 apscheduler = "^3.10.1"
 python-multipart = "^0.0.6"
 boto3 = "^1.28.37"
+pyproj = "^3.6.1"
+geopy = "^2.4.0"
+pydash = "^7.0.6"
 
 [tool.poetry.dev-dependencies]
 behave = "^1.2.6"
