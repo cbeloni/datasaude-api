@@ -16,6 +16,7 @@ def execute(address, provider):
     try:
         response  = {}
         if provider == 'opencage':
+            log.info("starting opencage")
             latitude, longitude, acuracia, json_data, components = get_latitude_longitude_opencage(address)
             x, y = converte_coordenadas_UTM(latitude, longitude)
             response = {"latitude": latitude, "longitude": longitude, "acuracia": acuracia, "x": x, "y": y,
