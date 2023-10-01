@@ -37,8 +37,10 @@ def execute(address, provider):
     return {"latitude": '', "longitude": '', "acuracia": '', "x": '', "y": '', "response": '{}'}
 
 def get_latitude_longitude_opencage(address):
+    log.info('start opencage: ' + address + " key: " + open_cage_api_key)
     url = "https://api.opencagedata.com/geocode/v1/json?key=%s&q=%s" % (open_cage_api_key, address)
     response = requests.get(url)
+    log.info('response opencage: ' + address + " key: " + open_cage_api_key)
     json_data = response.json()
     results = json_data['results']
     latitude = results[0]['geometry']['lat']
