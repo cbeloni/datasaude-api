@@ -35,9 +35,7 @@ def execute(address, provider):
         return response
     except Exception as e:
         log.error("Erro ao obter coordenada: " + address + " provider: " + provider, exc_info=True)
-
-
-    return {"latitude": '', "longitude": '', "acuracia": '', "x": '', "y": '', "response": '{}'}
+        return {"latitude": '', "longitude": '', "acuracia": '', "x": '', "y": '', "response": str(e)}
 
 def get_latitude_longitude_opencage(address):
     log.info('start opencage: ' + address + " key: " + open_cage_api_key)
