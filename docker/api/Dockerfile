@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED=1
 COPY . /home
 WORKDIR /home
 ENV ENV=dev
-RUN pip install "poetry"
+RUN pip install --upgrade "poetry"
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-dev
 ENV DOCKERIZE_VERSION v0.6.1
