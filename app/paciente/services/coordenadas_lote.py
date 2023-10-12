@@ -4,7 +4,7 @@ from api.paciente.v1.request.paciente_coordenadas_request import PacienteCoorden
 from app.paciente.services import coordenadas
 from distutils import log
 
-async def service_atualiza_paciente_coordenadas_lote(payload: PacienteCoordenadasLote):
+async def service_atualiza_paciente_coordenadas_lote(pacienteCoordenadasLote: PacienteCoordenadasLote):
 
     sql = """
             select max(p.id), concat(p.DS_ENDERECO,  ', ',  p.NR_ENDERECO,  ', ', p.NM_BAIRRO, ' - SP')
@@ -17,20 +17,17 @@ async def service_atualiza_paciente_coordenadas_lote(payload: PacienteCoordenada
               order by 1 asc
               limit :limit;
             """
-    pacientes = (await session.execute(sql, payload.to_dict())).all()
+    pacientes = (await session.execute(sql, pacienteCoordenadasLote.to_dict())).all()
     dados_coordenadas_lista = []
     for paciente in pacientes:
         id_paciente = paciente[0]
         endereco = paciente[1]
-        response = {'endereco': endereco, 'provider': payload.provider, 'id_paciente': id_paciente}
+        response = {'endereco': endereco, 'provider': pacienteCoordenadasLote.provider, 'id_paciente': id_paciente}
         paciente_coordenadas = PacienteCoordenadas.parse_obj(response)
         try:
-            dados_coordenadas = coordenadas.execute(endereco, payload.provider)
-
+            dados_coordenadas = coordenadas.execute(endereco, pacienteCoordenadasLote.provider)
             response.update(dados_coordenadas)
-
             paciente_coordenadas = PacienteCoordenadas.parse_obj(response)
-
         except Exception as ex:
             log.error("Não foi possível obter coordenadas %s" % paciente.id)
 

@@ -13,6 +13,7 @@ services:
     tty: true
     volumes:
       - $PWD:/home
+      - $PATH_VOLUME/$PATH_VOLUME
   db:
       image: mysql:8.0.33
       restart: always
