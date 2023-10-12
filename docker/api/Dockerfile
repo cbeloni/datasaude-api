@@ -7,7 +7,7 @@ WORKDIR /home
 ENV ENV=dev
 RUN apt-get update -y && \
     apt-get install -y python3-rtree python3-geopandas
-RUN pip install "poetry==1.5.1"
+RUN pip install "poetry>=1.3.0,<1.4.0"
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-dev
 ENV DOCKERIZE_VERSION v0.6.1
