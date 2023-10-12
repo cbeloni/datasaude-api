@@ -39,4 +39,3 @@ pytest = "^7.3.2"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-use-pep517 = false
