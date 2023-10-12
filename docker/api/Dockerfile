@@ -1,13 +1,13 @@
-FROM python:3
+FROM ubuntu:22.04
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 COPY . /home
 WORKDIR /home
 ENV ENV=dev
-RUN apt-get update -y && \
-    apt-get install -y python3-rtree python3-geopandas
-RUN pip install --upgrade "poetry"
+RUN apt-get update
+RUN apt-get install -y build-essential python3-greenlet pip git wget
+RUN pip install "poetry"
 RUN poetry config virtualenvs.create false
 RUN poetry install --no-dev
 ENV DOCKERIZE_VERSION v0.6.1
