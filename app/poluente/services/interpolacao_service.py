@@ -32,6 +32,7 @@ def query_paciente_poluente():
            and pc.acuracia >= 8
            and pc.country = 'BRAZIL'
            and county in ('São Paulo', 'Região Metropolitana de São Paulo')
+           and YEAR(STR_TO_DATE(p.DT_ATENDIMENTO, '%Y-%m-%d')) = :ano
            order by DT_ATENDIMENTO, p.id, pp.poluente asc
            limit :limit;
     """

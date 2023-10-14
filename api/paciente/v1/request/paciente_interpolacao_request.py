@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field, validator
 
 class PacienteInterpolacaoLote(BaseModel):
     limit: int = Field(..., example=2500)
+    ano: int = Field(default=2022, example=2022)
 
     @validator("limit")
     def validate_limit(cls, limit):
@@ -12,5 +13,6 @@ class PacienteInterpolacaoLote(BaseModel):
 
     def to_dict(self):
         return {
-            "limit": self.limit
+            "limit": self.limit,
+            "ano": self.ano,
         }
