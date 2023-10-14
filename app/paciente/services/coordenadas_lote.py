@@ -7,13 +7,18 @@ from distutils import log
 async def service_atualiza_paciente_coordenadas_lote(pacienteCoordenadasLote: PacienteCoordenadasLote):
 
     sql = """
-            select max(p.id), concat(p.DS_ENDERECO,  ', ',  p.NR_ENDERECO,  ', ', p.NM_BAIRRO, ' - SP')
+            select max(p.id), 
+                   CASE
+                        WHEN et.endereco_tratado IS NOT NULL THEN et.endereco_tratado
+                        ELSE CONCAT(p.DS_ENDERECO, ', ', p.NR_ENDERECO, ', ', p.NM_BAIRRO, ' - SP')
+                   END AS endereco_final
               from paciente p
-             where not exists (select 1
+          left join endereco_tratado et on p.CD_ATENDIMENTO = et.CD_ATENDIMENTO
+              where not exists (select 1
                                 from paciente_coordenadas pc
                                where pc.id_paciente = p.ID
                                and pc.provider = :provider)
-              group by concat(p.DS_ENDERECO,  ', ',  p.NR_ENDERECO,  ', ', p.NM_BAIRRO, ' - SP')
+              group by endereco_final
               order by 1 asc
               limit :limit;
             """
