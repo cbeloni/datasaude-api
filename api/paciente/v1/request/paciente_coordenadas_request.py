@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field, validator
 class PacienteCoordenadasLote(BaseModel):
     provider: str = Field(..., example="opencage")
     limit: int = Field(..., example=2500)
+    ano: int = Field(default=2022, example=2022)
 
     @validator("limit")
     def validate_limit(cls, limit):
@@ -14,5 +15,6 @@ class PacienteCoordenadasLote(BaseModel):
     def to_dict(self):
         return {
             "provider": self.provider,
-            "limit": self.limit
+            "limit": self.limit,
+            "ano": self.ano,
         }

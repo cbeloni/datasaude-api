@@ -18,6 +18,7 @@ async def service_atualiza_paciente_coordenadas_lote(pacienteCoordenadasLote: Pa
                                 from paciente_coordenadas pc
                                where pc.id_paciente = p.ID
                                and pc.provider = :provider)
+                and YEAR(STR_TO_DATE(DT_ATENDIMENTO, '%Y-%m-%d')) = :ano
               group by endereco_final
               order by 1 asc
               limit :limit;
