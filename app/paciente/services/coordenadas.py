@@ -4,6 +4,8 @@ import pyproj
 import logging
 from geopy.geocoders import Nominatim
 
+from app.paciente.exceptions.paciente_exceptions import CoordenadaNaoEncontrada
+
 open_cage_api_key = os.environ.get('OPEN_CAGE_API_KEY')
 google_maps_api_key = os.environ.get('GOOGLE_MAPS_API_KEY')
 
@@ -27,13 +29,14 @@ def execute(address, provider):
                         "response": str(json_data)}
             response.update(components)
         if provider == 'openstreetmap':
-            latitude, longitude, acuracia, x, y = get_free_coordenadas_utm_do_endereco(address)
+            latitude, longitude, acuracia = get_free_coordenadas(address)
+            x, y = converte_coordenadas_UTM(latitude, longitude)
             response = {"latitude": latitude, "longitude": longitude, "acuracia": acuracia, "x": x, "y": y,
                         "response": '{}', "components": '{}'}
         return response
     except Exception as e:
         log.error("Erro ao obter coordenada: " + address + " provider: " + provider, exc_info=True)
-        return {"latitude": '', "longitude": '', "acuracia": '', "x": '', "y": '', "response": str(e)}
+        raise e
 
 def get_latitude_longitude_opencage(address):
     log.info('start opencage: ' + address + " key: " + open_cage_api_key)
@@ -60,30 +63,21 @@ def converte_coordenadas_UTM(latitude, longitude):
     return transformer.transform(longitude, latitude)
 
 
-def get_free_coordenadas_utm_do_endereco(endereco):
-    try:
-        # Inicialize o geocoder
-        geolocator = Nominatim(user_agent="myGeocoder")
+def get_free_coordenadas(endereco):
+    # Inicialize o geocoder
+    geolocator = Nominatim(user_agent="myGeocoder")
 
-        # Obtenha as coordenadas geográficas (latitude e longitude) do endereço
-        location = geolocator.geocode(endereco)
+    # Obtenha as coordenadas geográficas (latitude e longitude) do endereço
+    location = geolocator.geocode(endereco)
 
-        if location:
-            latitude = location.latitude
-            longitude = location.longitude
-            place_rank = location.raw["place_rank"]
+    if location:
+        latitude = location.latitude
+        longitude = location.longitude
+        place_rank = location.raw["place_rank"]
 
-            # Defina a projeção de coordenadas para UTM 29T (código 29193)
-            utm = pyproj.Proj("+proj=utm +zone=23 +south +ellps=aust_SA + towgs84")
-
-            # Converta as coordenadas geográficas em coordenadas UTM
-            utm_x, utm_y = utm(longitude, latitude)
-
-            return latitude, longitude, place_rank, utm_x, utm_y
-        else:
-            raise {"Endereço não encontrado ou geocodificação falhou."}
-    except Exception as e:
-        raise {"error": str(e)}
+        return latitude, longitude, place_rank
+    else:
+        raise CoordenadaNaoEncontrada("Endereço não encontrado ou geocodificação falhou.")
 
 
 def get_latitude_longitude_gmaps(address):

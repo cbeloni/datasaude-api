@@ -20,3 +20,4 @@ class PacienteCoordenadas(BaseModel):
     suburb: str = Field(default="")
     formatted: str = Field(default="")
     response: str = Field(default="")
+    validado: int = Field(default="0")

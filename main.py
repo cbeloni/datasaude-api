@@ -4,7 +4,6 @@ import os
 import click
 import uvicorn
 
-from celery_task.poluente_job import poluente_job
 from core.config import config
 from app.server import app
 from fastapi.middleware.cors import CORSMiddleware

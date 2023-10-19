@@ -1,0 +1,2 @@
+class CoordenadaNaoEncontrada(Exception):
+    pass
