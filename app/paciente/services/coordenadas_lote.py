@@ -17,7 +17,7 @@ async def service_atualiza_paciente_coordenadas_lote(pacienteCoordenadasLote: Pa
               where not exists (select 1
                                   from paciente_coordenadas pc
                                  where pc.id_paciente = p.ID
-                                   and (pc.validado = 1 or pc.provider = :provider) )
+                                   and (pc.validado in (-1, 1) or pc.provider = :provider) )
                 and YEAR(STR_TO_DATE(DT_ATENDIMENTO, '%Y-%m-%d')) = :ano
               group by endereco_final
               order by 1 asc
@@ -33,10 +33,12 @@ async def service_atualiza_paciente_coordenadas_lote(pacienteCoordenadasLote: Pa
         try:
             dados_coordenadas = coordenadas.execute(endereco, pacienteCoordenadasLote.provider)
             response.update(dados_coordenadas)
-            response.update(validacao(pacienteCoordenadasLote.provider, response))
+            retorno_validacao = validacao(pacienteCoordenadasLote.provider, response)
+            response.update(retorno_validacao)
             paciente_coordenadas = PacienteCoordenadas.parse_obj(response)
         except Exception as ex:
-            mensagem_erro = f"Não foi possível obter coordenadas {id_paciente}, erro: {ex}"
+            paciente_coordenadas = PacienteCoordenadas.parse_obj(response)
+            mensagem_erro = f"Erro genérico - não foi possível obter coordenadas {id_paciente}, erro: {ex}"
             log.error(mensagem_erro)
             paciente_coordenadas.response=mensagem_erro
 

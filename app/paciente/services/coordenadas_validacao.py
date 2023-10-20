@@ -1,23 +1,54 @@
+import os
+from shapely.geometry import Point
+import geopandas as gpd
+
+PATH_VOLUME = os.environ.get('PATH_VOLUME')
+
+_retorno = {}
+
+def tem_localizacao_contorno_valida(x, y):
+    point_utm = Point(x, y)
+
+    gdf = gpd.read_file(PATH_VOLUME + "geojson/RMSP_CONTORNO.geojson")
+    result = gdf.contains(point_utm)
+    return result.any()
+
 def validacao_openstreetmap(coordenadas):
     if int(coordenadas['acuracia']) < 26:
-        return False
-    return True
+        _retorno['validado'] = 0
+        _retorno['response'] = 'Acurácia abaixo de 26'
+        return _retorno
+
+    if not tem_localizacao_contorno_valida(coordenadas['x'], coordenadas['y']):
+        _retorno['validado'] = -1
+        _retorno['response'] = 'Localização fora da grande SP'
+        return _retorno
+
+    return _retorno
 
 
 def validacao_opencage(coordenadas):
     if int(coordenadas['acuracia']) < 8:
-        return False
+        _retorno['validado'] = 0
+        _retorno['response'] = 'Acurácia abaixo de 8'
+        return _retorno
     if coordenadas['country'] != 'BRAZIL':
-        return False
+        _retorno['validado'] = 0
+        _retorno['response'] = 'country não é BRAZIL'
+        return _retorno
     if coordenadas['county'] not in ('São Paulo', 'Região Metropolitana de São Paulo'):
-        return False
-    return True
+        _retorno['validado'] = 0
+        _retorno['response'] = "Localização não é São Paulo ou Região Metropolitana de São Paulo"
+        return _retorno
+    return _retorno
 
 
 def validacao_googlemaps(coordenadas):
     if coordenadas['acuracia'] not in ('ROOFTOP', 'RANGE_INTERPOLATED'):
-        return False
-    return True
+        _retorno['validado'] = 0
+        _retorno['response'] = "Acurácia diferente de ROOFTOP e RANGE_INTERPOLATED"
+        return _retorno
+    return _retorno
 
 
 _validacoes = {
@@ -28,8 +59,10 @@ _validacoes = {
 
 
 def validacao(provider, coordenadas):
-    validacao = _validacoes[provider]
-    return {'validado':  validacao(coordenadas)}
+    _retorno['validado'] = 1
+    _retorno['response'] = coordenadas['response']
+    validacao_impl = _validacoes[provider]
+    return validacao_impl(coordenadas)
 
 
 if __name__ == '__main__':
