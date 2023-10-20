@@ -32,10 +32,6 @@ def validacao_opencage(coordenadas):
         _retorno['validado'] = 0
         _retorno['response'] = 'Acurácia abaixo de 8'
         return _retorno
-    if coordenadas['country'] != 'Brazil':
-        _retorno['validado'] = 0
-        _retorno['response'] = 'country não é Brazil'
-        return _retorno
     if not tem_localizacao_contorno_valida(coordenadas['x'], coordenadas['y']):
         _retorno['validado'] = -1
         _retorno['response'] = 'Localização fora da grande SP'
