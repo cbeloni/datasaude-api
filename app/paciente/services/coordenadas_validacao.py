@@ -36,9 +36,9 @@ def validacao_opencage(coordenadas):
         _retorno['validado'] = 0
         _retorno['response'] = 'country não é Brazil'
         return _retorno
-    if coordenadas['county'] not in ('São Paulo', 'Região Metropolitana de São Paulo'):
-        _retorno['validado'] = 0
-        _retorno['response'] = "Localização não é São Paulo ou Região Metropolitana de São Paulo"
+    if not tem_localizacao_contorno_valida(coordenadas['x'], coordenadas['y']):
+        _retorno['validado'] = -1
+        _retorno['response'] = 'Localização fora da grande SP'
         return _retorno
     return _retorno
 
