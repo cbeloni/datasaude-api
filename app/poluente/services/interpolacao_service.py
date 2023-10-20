@@ -30,7 +30,7 @@ def query_paciente_poluente():
            and replace(p.DT_ATENDIMENTO, '-','') =  pp.data_coleta
            and not exists (select 1 from paciente_interpolacao pi where pc.id = pi.id_coordenada and pp.poluente = pi.poluente)
            and pc.acuracia >= 8
-           and pc.country = 'BRAZIL'
+           and pc.country = 'Brazil'
            and county in ('São Paulo', 'Região Metropolitana de São Paulo')
            and YEAR(STR_TO_DATE(p.DT_ATENDIMENTO, '%Y-%m-%d')) = :ano
            order by DT_ATENDIMENTO, p.id, pp.poluente asc

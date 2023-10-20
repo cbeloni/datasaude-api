@@ -32,9 +32,9 @@ def validacao_opencage(coordenadas):
         _retorno['validado'] = 0
         _retorno['response'] = 'Acurácia abaixo de 8'
         return _retorno
-    if coordenadas['country'] != 'BRAZIL':
+    if coordenadas['country'] != 'Brazil':
         _retorno['validado'] = 0
-        _retorno['response'] = 'country não é BRAZIL'
+        _retorno['response'] = 'country não é Brazil'
         return _retorno
     if coordenadas['county'] not in ('São Paulo', 'Região Metropolitana de São Paulo'):
         _retorno['validado'] = 0
