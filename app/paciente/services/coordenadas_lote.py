@@ -7,7 +7,7 @@ from app.paciente.services.coordenadas_validacao import validacao
 async def service_atualiza_paciente_coordenadas_lote(pacienteCoordenadasLote: PacienteCoordenadasLote):
 
     sql = """
-            select max(p.id), 
+            select p.id, 
                    CASE
                         WHEN et.endereco_tratado IS NOT NULL THEN et.endereco_tratado
                         ELSE CONCAT(p.DS_ENDERECO, ', ', p.NR_ENDERECO, ', ', p.NM_BAIRRO, ' - SP')
@@ -19,7 +19,6 @@ async def service_atualiza_paciente_coordenadas_lote(pacienteCoordenadasLote: Pa
                                  where pc.id_paciente = p.ID
                                    and (pc.validado in (-1, 1) or pc.provider = :provider) )
                 and YEAR(STR_TO_DATE(DT_ATENDIMENTO, '%Y-%m-%d')) = :ano
-              group by endereco_final
               order by 1 asc
               limit :limit;
             """
