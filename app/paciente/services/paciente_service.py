@@ -1,13 +1,14 @@
 from core.db.session import session
 def query_pacientes():
-    return """
-        SELECT p.id, p.CD_ATENDIMENTO, p.NM_PACIENTE, p.DT_ATENDIMENTO, p.DS_ORI_ATE, p.DS_LEITO, p.DT_ALTA,
-               p.ds_cid, pc.endereco, pc.longitude, pc.latitude, pc.x, pc.y
-          FROM paciente p, paciente_coordenadas pc
+    return """   
+           SELECT pi.data, pc.endereco, pc.longitude, pc.latitude, pc.x, pc.y, max(pi.indice_interpolado)
+          FROM paciente p, paciente_coordenadas pc, paciente_interpolacao pi
          WHERE p.id = pc.id_paciente
-           AND DT_ATENDIMENTO = :dt_atendimento
+           AND pc.id = pi.id_coordenada
+           AND DT_ATENDIMENTO =  :dt_atendimento
            AND pc.validado = 1
-           AND pc.latitude is not null;
+           AND pc.latitude is not null
+      group by pi.data, pc.endereco, pc.longitude, pc.latitude, pc.x, pc.y;
     """
 
 async def obtem_paciente_service(filtros):
