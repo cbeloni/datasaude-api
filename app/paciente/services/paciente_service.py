@@ -6,7 +6,8 @@ def query_pacientes():
           FROM paciente p, paciente_coordenadas pc
          WHERE p.id = pc.id_paciente
            AND DT_ATENDIMENTO = :dt_atendimento
-           AND pc.validado = 1;
+           AND pc.validado = 1
+           AND pc.latitude is not null;
     """
 
 async def obtem_paciente_service(filtros):
