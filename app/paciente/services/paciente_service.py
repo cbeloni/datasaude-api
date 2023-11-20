@@ -1,7 +1,7 @@
 from core.db.session import session
 def query_pacientes():
     return """   
-           SELECT pi.data, pc.endereco, pc.longitude, pc.latitude, pc.x, pc.y, max(pi.indice_interpolado)
+           SELECT pi.data, pc.endereco, pc.longitude, pc.latitude, pc.x, pc.y, max(pi.indice_interpolado) as indice
           FROM paciente p, paciente_coordenadas pc, paciente_interpolacao pi
          WHERE p.id = pc.id_paciente
            AND pc.id = pi.id_coordenada
