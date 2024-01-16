@@ -14,17 +14,10 @@ from core.fastapi.dependencies import (
 from app.poluente.services.gestor_arquivos import enviar_arquivo
 from distutils import log
 
+from core.utils.counter import DrawConter
+
 poluente_router = APIRouter()
 _poluenteService = PoluenteService()
-
-class DrawConter:
-    def __init__(self):
-        self._counter = 0
-
-    @property
-    def draw(self):
-        self._counter += 1
-        return self._counter
 
 _counter = DrawConter()
 
