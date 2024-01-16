@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Header, Query
 
-from api.paciente.v1.request.paciente import PacientePagination
+from api.paciente.v1.request.paciente import PacientePagination, PacienteListRequest
 from api.paciente.v1.request.paciente_coordenadas_request import PacienteCoordenadasLote
 from api.paciente.v1.request.paciente_internacao import PacienteInternacaoPayload
 from api.paciente.v1.request.paciente_interpolacao_request import PacienteInterpolacaoLote
@@ -66,28 +66,26 @@ async def obtem_paciente(payload: PacienteRequest):
     log.info(f"Obtendo paciante {payload}")
     return await obtem_paciente_service(payload)
 
-@paciente_router.get(
-    "/",
+@paciente_router.post(
+    "/listar",
     response_model=PacientePagination,
     response_model_exclude={},
     responses={"400": {"model": ExceptionResponseSchema}},
     # dependencies=[Depends(PermissionDependency([IsAdmin]))],
 )
-async def get_paciente_list(
-        length: int = Query(10, description="quantidade de registros que devem retornar"),
-        prev: int = Query(None, description="Prev ID"),
-        start: int = Query(1, description="Página atual"),
+async def post_paciente_list(
+    payload: PacienteListRequest
 ):
     pacientePagination: PacientePagination = PacientePagination(
         Counter=_counter.draw,
     )
 
-    pacientePagination.Payload = await paciente_list(limit=length,
-                                                       prev=prev,
-                                                       start=start)
+    pacientePagination.Payload = await paciente_list(limit=payload.take,
+                                                      prev=payload.prev,
+                                                      start=payload.skip)
     pacientePagination.TotalRecordCount = await paciente_count()
     pacientePagination.FilteredRecordCount = pacientePagination.TotalRecordCount
-    pacientePagination.TotalPages = pacientePagination.TotalRecordCount / length
-    pacientePagination.CurrentPage = (start // length) + 1
+    pacientePagination.TotalPages = pacientePagination.TotalRecordCount / payload.take
+    pacientePagination.CurrentPage = (payload.skip // payload.take) + 1
 
     return pacientePagination

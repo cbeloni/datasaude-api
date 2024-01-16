@@ -27,6 +27,12 @@ class PacienteBase(BaseModel):
     class Config:
         orm_mode = True
 
+class PacienteListRequest(BaseModel):
+        take: int = Field(..., description="quantos registros pegar")
+        prev: Optional[int] = Field(None, description="a partir do registro")
+        skip: int = Field(..., description="quantidade de registros para pular")
+        columns: list = Field(..., description="colunas da tabela")
+
 class PacientePagination(BaseModel):
     Counter: Optional[int] = Field(None, description="Contador de versão")
     TotalRecordCount: Optional[int] = Field(None, description="Total de registros")
