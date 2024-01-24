@@ -11,7 +11,7 @@ class Paciente(Base):
     TP_ATENDIMENTO = Column(String)
     DS_ORI_ATE = Column(String)
     DS_LEITO = Column(String, nullable=True)
-    DT_PREVISTA_ALTA = Column(String, nullable=True)
+    # DT_PREVISTA_ALTA = Column(String, nullable=True)
     DT_ALTA = Column(String)
     CD_SGRU_CID = Column(String)
     CD_CID = Column(String)

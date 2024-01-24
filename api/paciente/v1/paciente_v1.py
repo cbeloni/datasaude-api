@@ -13,8 +13,9 @@ from app.paciente.services.internacao_service import execute as internacao_servi
 from app.user.schemas import (
     ExceptionResponseSchema,
 )
-from distutils import log
-
+# from distutils import log
+import logging
+log = logging.getLogger(__name__)
 from core.utils.counter import DrawConter
 
 paciente_router = APIRouter()
@@ -76,14 +77,16 @@ async def obtem_paciente(payload: PacienteRequest):
 async def post_paciente_list(
     payload: PacienteListRequest
 ):
+    log.info(f"Obtendo paciante list {payload}")
     pacientePagination: PacientePagination = PacientePagination(
         Counter=_counter.draw,
     )
 
     pacientePagination.Payload = await paciente_list(limit=payload.take,
                                                       prev=payload.prev,
-                                                      start=payload.skip)
-    pacientePagination.TotalRecordCount = await paciente_count()
+                                                      start=payload.skip,
+                                                      filter=payload.filter)
+    pacientePagination.TotalRecordCount = len(pacientePagination.Payload)
     pacientePagination.FilteredRecordCount = pacientePagination.TotalRecordCount
     pacientePagination.TotalPages = pacientePagination.TotalRecordCount / payload.take
     pacientePagination.CurrentPage = (payload.skip // payload.take) + 1
