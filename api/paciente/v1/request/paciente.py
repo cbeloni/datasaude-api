@@ -35,10 +35,10 @@ class PacienteListRequest(BaseModel):
         filter: Optional[dict] = Field(None, description="filtro para consulta")
 
 class PacientePagination(BaseModel):
-    Counter: Optional[int] = Field(None, description="Contador de versão")
-    TotalRecordCount: Optional[int] = Field(None, description="Total de registros")
-    FilteredRecordCount: Optional[int] = Field(None, description="Total filtrado")
-    TotalPages: Optional[int] = Field(None, description="Total filtrado")
-    CurrentPage: Optional[int] = Field(None, description="Página atual")
-    Payload: Optional[List[PacienteBase]] = Field(None, description="Dados dos poluentes")
-    AggregationPayload: Optional[List] = Field(None, description="AggregationPayload")
+    counter: Optional[int] = Field(None, description="Contador de versão")
+    totalRecordCount: Optional[int] = Field(None, description="Total de registros")
+    filteredRecordCount: Optional[int] = Field(None, description="Total filtrado")
+    totalPages: Optional[int] = Field(None, description="Total filtrado")
+    currentPage: Optional[int] = Field(None, description="Página atual")
+    payload: Optional[List[PacienteBase]] = Field(None, description="Dados dos poluentes")
+    aggregationPayload: Optional[List] = Field(None, description="AggregationPayload")

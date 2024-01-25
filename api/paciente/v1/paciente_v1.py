@@ -79,16 +79,17 @@ async def post_paciente_list(
 ):
     log.info(f"Obtendo paciante list {payload}")
     pacientePagination: PacientePagination = PacientePagination(
-        Counter=_counter.draw,
+        counter=_counter.draw,
     )
 
-    pacientePagination.Payload = await paciente_list(limit=payload.take,
-                                                      prev=payload.prev,
-                                                      start=payload.skip,
-                                                      filter=payload.filter)
-    pacientePagination.TotalRecordCount = len(pacientePagination.Payload)
-    pacientePagination.FilteredRecordCount = pacientePagination.TotalRecordCount
-    pacientePagination.TotalPages = pacientePagination.TotalRecordCount / payload.take
-    pacientePagination.CurrentPage = (payload.skip // payload.take) + 1
+    (pacientePagination.payload, pacientePagination.totalRecordCount) \
+        = await paciente_list(limit=payload.take,
+                              prev=payload.prev,
+                              start=payload.skip,
+                              filter=payload.filter)
+
+    pacientePagination.filteredRecordCount = pacientePagination.totalRecordCount
+    pacientePagination.totalPages = pacientePagination.totalRecordCount / payload.take
+    pacientePagination.currentPage = (payload.skip // payload.take) + 1
 
     return pacientePagination

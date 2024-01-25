@@ -3,7 +3,7 @@ from typing import Optional, List
 from app.paciente.models.paciente_model import Paciente
 from app.paciente.repository.paciente_repository import PacienteRepository
 from core.db.session import session
-from sqlalchemy import select, desc, asc, text
+from sqlalchemy import select, desc, asc, text, func
 from dateutil.parser import parse
 
 def query_pacientes():
@@ -28,7 +28,7 @@ async def paciente_list(
         prev: Optional[int] = None,
         start: int = 0,
         filter: dict = None
-    ) -> List[Paciente]:
+    ) -> (any, int):
         query = select(Paciente)
 
         if prev:
@@ -48,10 +48,13 @@ async def paciente_list(
         if limit > 1000:
             limit = 1000
 
-        query = query.offset(start).limit(limit).order_by(desc(Paciente.id))
-        # print(str(query))
+        quantidade = len((await session.execute(query)).scalars().all())
 
-        return (await session.execute(query)).scalars().all()
+        query = query.offset(start).limit(limit).order_by(desc(Paciente.id))
+        registros = (await session.execute(query)).scalars().all()
+
+        # print(str(query))
+        return (registros, quantidade)
 
 async def paciente_count() -> int:
     return await PacienteRepository().count()
