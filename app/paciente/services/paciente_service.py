@@ -48,7 +48,8 @@ async def paciente_list(
         if limit > 1000:
             limit = 1000
 
-        quantidade = len((await session.execute(query)).scalars().all())
+        count_query = select([func.count()]).select_from(query.alias())
+        quantidade = (await session.execute(count_query)).scalar()
 
         query = query.offset(start).limit(limit).order_by(desc(Paciente.id))
         registros = (await session.execute(query)).scalars().all()
