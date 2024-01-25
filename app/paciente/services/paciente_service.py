@@ -35,13 +35,13 @@ async def paciente_list(
             query = query.where(Paciente.id < prev)
 
 
-        if 'dt_atendimento_inicial' in filter:
+        if filter and 'dt_atendimento_inicial' in filter:
             query = query.where(Paciente.DT_ATENDIMENTO >= parse(filter['dt_atendimento_inicial']))
-        if 'dt_atendimento_final' in filter:
+        if filter and 'dt_atendimento_final' in filter:
             query = query.where(Paciente.DT_ATENDIMENTO <= parse(filter['dt_atendimento_final']))
-        if 'idade_meses' in filter:
+        if filter and 'idade_meses' in filter:
             query = query.where(text("TIMESTAMPDIFF(MONTH, dt_nasc, CURRENT_DATE()) = :idade_meses").bindparams(idade_meses=filter['idade_meses']))
-        if 'idade_anos' in filter:
+        if filter and 'idade_anos' in filter:
             query = query.where(text("TIMESTAMPDIFF(YEAR, dt_nasc, CURRENT_DATE()) = :idade_anos").bindparams(idade_anos=filter['idade_anos']))
 
 
