@@ -27,12 +27,17 @@ class PacienteBase(BaseModel):
     class Config:
         orm_mode = True
 
+class FiltroParams(BaseModel):
+    dt_atendimento_inicial: Optional[str]
+    dt_atendimento_final: Optional[str]
+    idade_meses: Optional[str]
+    idade_anos: Optional[str]
+
 class PacienteListRequest(BaseModel):
         take: int = Field(..., description="quantos registros pegar", example=10)
         prev: Optional[int] = Field(None, description="a partir do registro")
         skip: int = Field(..., description="quantidade de registros para pular")
         columns: list = Field(..., description="colunas da tabela")
-        filter: Optional[dict] = Field(None, description="filtro para consulta")
 
 class PacientePagination(BaseModel):
     counter: Optional[int] = Field(None, description="Contador de versão")

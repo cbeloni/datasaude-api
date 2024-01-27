@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Header, Query
+from fastapi import APIRouter, Header, Query, Depends
 
-from api.paciente.v1.request.paciente import PacientePagination, PacienteListRequest
+from api.paciente.v1.request.paciente import PacientePagination, PacienteListRequest, FiltroParams
 from api.paciente.v1.request.paciente_coordenadas_request import PacienteCoordenadasLote
 from api.paciente.v1.request.paciente_internacao import PacienteInternacaoPayload
 from api.paciente.v1.request.paciente_interpolacao_request import PacienteInterpolacaoLote
@@ -75,7 +75,8 @@ async def obtem_paciente(payload: PacienteRequest):
     # dependencies=[Depends(PermissionDependency([IsAdmin]))],
 )
 async def post_paciente_list(
-    payload: PacienteListRequest
+    filtro: FiltroParams = Depends(),
+    payload: PacienteListRequest = None
 ):
     log.info(f"Obtendo paciante list {payload}")
     pacientePagination: PacientePagination = PacientePagination(
@@ -86,7 +87,7 @@ async def post_paciente_list(
         = await paciente_list(limit=payload.take,
                               prev=payload.prev,
                               start=payload.skip,
-                              filter=payload.filter)
+                              filter=filtro)
 
     pacientePagination.filteredRecordCount = pacientePagination.totalRecordCount
     pacientePagination.totalPages = pacientePagination.totalRecordCount / payload.take
