@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Header, Query, Depends
+from fastapi import APIRouter, Header, Depends
 
 from api.paciente.v1.request.paciente import PacientePagination, PacienteListRequest, FiltroParams
 from api.paciente.v1.request.paciente_coordenadas_request import PacienteCoordenadasLote
@@ -6,9 +6,10 @@ from api.paciente.v1.request.paciente_internacao import PacienteInternacaoPayloa
 from api.paciente.v1.request.paciente_interpolacao_request import PacienteInterpolacaoLote
 from api.paciente.v1.request.paciente_request import PacienteRequest
 from app.paciente.services.coordenadas_lote import service_atualiza_paciente_coordenadas_lote
-from app.paciente.services.paciente_service import obtem_paciente_service, paciente_list, paciente_count
+from app.paciente.services.paciente_service import obtem_paciente_service, paciente_list, get_paciente_coordenadas
 from app.poluente.services.interpolacao_service import indice_poluente_lote
 from app.paciente.services.internacao_service import execute as internacao_service_execute
+from app.paciente.models.paciente_coordenadas import PacienteCoordenadas
 
 from app.user.schemas import (
     ExceptionResponseSchema,
@@ -94,3 +95,11 @@ async def post_paciente_list(
     pacientePagination.currentPage = (payload.skip // payload.take) + 1
 
     return pacientePagination
+
+@paciente_router.get(
+"/coordenadas",
+    response_model_exclude={},
+    responses={"400": {"model": ExceptionResponseSchema}},
+)
+async def paciente_coordenadas(id: int):
+    return await get_paciente_coordenadas(id)

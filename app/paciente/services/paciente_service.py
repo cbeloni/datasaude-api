@@ -1,6 +1,7 @@
 from typing import Optional, List
 
 from api.paciente.v1.request.paciente import FiltroParams
+from app.paciente.models.paciente_coordenadas import PacienteCoordenadas
 from app.paciente.models.paciente_model import Paciente
 from app.paciente.repository.paciente_repository import PacienteRepository
 from core.db.session import session
@@ -49,6 +50,7 @@ async def paciente_list(
             limit = 1000
 
         count_query = select([func.count()]).select_from(query.alias())
+        print(count_query)
         quantidade = (await session.execute(count_query)).scalar()
 
         query = query.offset(start).limit(limit).order_by(desc(Paciente.id))
@@ -59,3 +61,14 @@ async def paciente_list(
 
 async def paciente_count() -> int:
     return await PacienteRepository().count()
+
+async def get_paciente_coordenadas(id) -> any:
+
+    query = (
+        select(PacienteCoordenadas, Paciente)
+        .join(PacienteCoordenadas, Paciente.id == PacienteCoordenadas.id_paciente)
+        .where(PacienteCoordenadas.id == id)
+    )
+    print(query)
+    registros = (await session.execute(query)).all()
+    return registros

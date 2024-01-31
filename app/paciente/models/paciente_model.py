@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String, Date, BigInteger
+from sqlalchemy import Column, Integer, String, Date, BigInteger, ForeignKey
+from sqlalchemy.orm import relationship
+
 from core.db import Base
 
 class Paciente(Base):
