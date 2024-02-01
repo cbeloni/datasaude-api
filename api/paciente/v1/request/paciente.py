@@ -22,7 +22,12 @@ class PacienteBase(BaseModel):
     NR_CEP: Optional[int] = Field(None, example=4757000)
     DT_NASC: Optional[date] = Field(None, example="2014-03-11")
     IDADE: Optional[str] = Field(None, example="9a 0m 19d")
-    TP_SEXO: Optional[str] = Field(None, example="F")
+    endereco: Optional[str] = Field(None, example="AVENIDA BOSQUE DA SAUDE, 426, SAUDE - SP")
+    latitude: Optional[str] = Field(None, example="-23.6114721")
+    longitude: Optional[str] = Field(None, example="-46.631234")
+    poluente: Optional[str] = Field(None, example="MP10")
+    indice_interpolado: Optional[str] = Field(None, example="16.392966003938955")
+
 
     class Config:
         orm_mode = True

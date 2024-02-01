@@ -2,10 +2,11 @@ from typing import Optional, List
 
 from api.paciente.v1.request.paciente import FiltroParams
 from app.paciente.models.paciente_coordenadas import PacienteCoordenadas
+from app.paciente.models.paciente_interpolacao import PacienteInterpolacao
 from app.paciente.models.paciente_model import Paciente
 from app.paciente.repository.paciente_repository import PacienteRepository
 from core.db.session import session
-from sqlalchemy import select, desc, asc, text, func
+from sqlalchemy import select, desc, text, func
 from dateutil.parser import parse
 
 def query_pacientes():
@@ -31,7 +32,12 @@ async def paciente_list(
         start: int = 0,
         filter: FiltroParams = None
     ) -> (any, int):
-        query = select(Paciente)
+        query = (select(Paciente.id, Paciente.CD_ATENDIMENTO, Paciente.NM_PACIENTE, Paciente.DT_ATENDIMENTO, Paciente.TP_ATENDIMENTO, Paciente.DS_ORI_ATE, Paciente.DS_LEITO, Paciente.DT_ALTA, Paciente.CD_SGRU_CID, Paciente.CD_CID, Paciente.DS_CID, Paciente.SN_INTERNADO, Paciente.DS_ENDERECO, Paciente.NR_ENDERECO, Paciente.NM_BAIRRO, Paciente.NR_CEP, Paciente.DT_NASC, Paciente.IDADE, Paciente.TP_SEXO,
+                       PacienteCoordenadas.endereco, PacienteCoordenadas.latitude, PacienteCoordenadas.longitude,
+                        PacienteInterpolacao.poluente, PacienteInterpolacao.indice_interpolado)
+                 .join(PacienteCoordenadas, Paciente.id == PacienteCoordenadas.id_paciente)
+                 .join(PacienteInterpolacao, PacienteCoordenadas.id == PacienteInterpolacao.id_coordenada)
+                 .where(PacienteCoordenadas.validado == 1))
 
         if prev:
             query = query.where(Paciente.id < prev)
@@ -54,7 +60,7 @@ async def paciente_list(
         quantidade = (await session.execute(count_query)).scalar()
 
         query = query.offset(start).limit(limit).order_by(desc(Paciente.id))
-        registros = (await session.execute(query)).scalars().all()
+        registros = (await session.execute(query)).all()
 
         # print(str(query))
         return (registros, quantidade)
@@ -65,9 +71,11 @@ async def paciente_count() -> int:
 async def get_paciente_coordenadas(id) -> any:
 
     query = (
-        select(PacienteCoordenadas, Paciente)
+        select(PacienteCoordenadas.id, PacienteCoordenadas.longitude,PacienteCoordenadas.longitude, PacienteCoordenadas.endereco, Paciente, PacienteInterpolacao)
         .join(PacienteCoordenadas, Paciente.id == PacienteCoordenadas.id_paciente)
+        .join(PacienteInterpolacao, PacienteCoordenadas.id == PacienteInterpolacao.id_coordenada)
         .where(PacienteCoordenadas.id == id)
+        .where(PacienteCoordenadas.validado == 1)
     )
     print(query)
     registros = (await session.execute(query)).all()
