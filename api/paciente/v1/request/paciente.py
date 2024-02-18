@@ -10,7 +10,7 @@ class PacienteBase(BaseModel):
     TP_ATENDIMENTO: Optional[str] = Field(None, example="A")
     DS_ORI_ATE: Optional[str] = Field(None, example="CENTRO DE EXCELENCIA")
     DS_LEITO: Optional[str] = Field(None, example="Some example")
-    DT_PREVISTA_ALTA: Optional[date] = Field(None, example="2023-04-01")
+    # DT_PREVISTA_ALTA: Optional[date] = Field(None, example="2023-04-01")
     DT_ALTA: Optional[date] = Field(None, example="2023-03-31")
     CD_SGRU_CID: Optional[str] = Field(None, example="J85")
     CD_CID: Optional[str] = Field(None, example="J851")
@@ -27,6 +27,10 @@ class PacienteBase(BaseModel):
     longitude: Optional[str] = Field(None, example="-46.631234")
     poluente: Optional[str] = Field(None, example="MP10")
     indice_interpolado: Optional[str] = Field(None, example="16.392966003938955")
+
+    def to_model(self):
+        campos_remover = ['endereco', 'latitude', 'longitude', 'indice_interpolado', 'poluente']
+        return {chave: valor for chave, valor in self.dict().items() if chave not in campos_remover}
 
 
     class Config:

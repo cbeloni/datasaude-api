@@ -1,6 +1,6 @@
 from typing import Optional, List
 
-from api.paciente.v1.request.paciente import FiltroParams
+from api.paciente.v1.request.paciente import FiltroParams, PacienteBase
 from app.paciente.models.paciente_coordenadas import PacienteCoordenadas
 from app.paciente.models.paciente_interpolacao import PacienteInterpolacao
 from app.paciente.models.paciente_model import Paciente
@@ -8,6 +8,8 @@ from app.paciente.repository.paciente_repository import PacienteRepository
 from core.db.session import session
 from sqlalchemy import select, desc, text, func
 from dateutil.parser import parse
+import logging
+log = logging.getLogger(__name__)
 
 def query_pacientes():
     return """   
@@ -80,3 +82,10 @@ async def get_paciente_coordenadas(id) -> any:
     print(query)
     registros = (await session.execute(query)).all()
     return registros
+
+async def salvar_paciente(pacienteBase: PacienteBase):
+    log.info(f"pacianteBase {pacienteBase}")
+    paciente = Paciente(**pacienteBase.to_model())
+    await session.merge(paciente)
+    await session.commit()
+    return paciente
