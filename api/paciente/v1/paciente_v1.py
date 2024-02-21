@@ -1,3 +1,4 @@
+from celery.result import AsyncResult
 from fastapi import APIRouter, Header, Depends
 
 from api.paciente.v1.request.paciente import PacientePagination, PacienteListRequest, FiltroParams, PacienteBase
@@ -10,12 +11,16 @@ from app.paciente.services.paciente_service import obtem_paciente_service, pacie
     salvar_paciente
 from app.poluente.services.interpolacao_service import indice_poluente_lote
 from app.paciente.services.internacao_service import execute as internacao_service_execute
+from fastapi.responses import JSONResponse
 
 from app.user.schemas import (
     ExceptionResponseSchema,
 )
 # from distutils import log
 import logging
+
+from celery_task import paciente_task
+
 log = logging.getLogger(__name__)
 from core.utils.counter import DrawConter
 
@@ -114,3 +119,18 @@ async def post_paciente_salvar(
 ):
     log.info(f"Salvando paciante {payload}")
     return await salvar_paciente(payload)
+
+@paciente_router.post("/tasks", status_code=201)
+def run_task(payload: int):
+    task = paciente_task.delay(int(payload))
+    return JSONResponse({"task_id": task.id})
+
+@paciente_router.get("/tasks/{task_id}")
+def get_status(task_id):
+    task_result = AsyncResult(task_id)
+    result = {
+        "task_id": task_id,
+        "task_status": task_result.status,
+        "task_result": task_result.result
+    }
+    return JSONResponse(result)
