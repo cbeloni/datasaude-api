@@ -10,6 +10,7 @@ services:
     restart: always
     ports:
       - '80:8000'
+      - '5001:5001'
     tty: true
     volumes:
       - $PWD:/home
