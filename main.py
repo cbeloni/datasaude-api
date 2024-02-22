@@ -4,9 +4,11 @@ import os
 import click
 import uvicorn
 
+from celery_task import celery_app
 from core.config import config
 from app.server import app
 from fastapi.middleware.cors import CORSMiddleware
+from threading import Thread
 
 logging.info("Starting app")
 
@@ -17,6 +19,10 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
+
+def start_celery_worker():
+    celery_worker = celery_app.Worker()
+    celery_worker.start()
 
 @click.command()
 @click.option(
@@ -33,6 +39,9 @@ app.add_middleware(
 def main(env: str, debug: bool):
     os.environ["ENV"] = env
     os.environ["DEBUG"] = str(debug)
+    celery_thread = Thread(target=start_celery_worker)
+    celery_thread.daemon = True
+    celery_thread.start()
     uvicorn.run(
         app="app.server:app",
         host=config.APP_HOST,
