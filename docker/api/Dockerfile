@@ -16,6 +16,4 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
     && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
 
 RUN chmod +x /home/docker/api/startup.sh
-CMD ["celery", "-A", "celery_task", "worker", "--loglevel=info"]
-CMD ["celery","-A","celery_task", "flower", "--port=5001", "&&"]
 ENTRYPOINT /home/docker/api/startup.sh
