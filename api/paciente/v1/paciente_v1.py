@@ -19,7 +19,7 @@ from app.user.schemas import (
 # from distutils import log
 import logging
 
-from celery_task import paciente_task
+from celery_task import paciente_task, geolocalizacao_task
 
 log = logging.getLogger(__name__)
 from core.utils.counter import DrawConter
@@ -120,9 +120,14 @@ async def post_paciente_salvar(
     log.info(f"Salvando paciante {payload}")
     return await salvar_paciente(payload)
 
-@paciente_router.post("/tasks", status_code=201)
+@paciente_router.post("/paciente/task", status_code=201)
 def run_task(payload: int):
     task = paciente_task.delay(int(payload))
+    return JSONResponse({"task_id": task.id})
+
+@paciente_router.post("/geolocalizacao/task", status_code=201)
+def run_task(payload: int):
+    task = geolocalizacao_task.delay(int(payload))
     return JSONResponse({"task_id": task.id})
 
 @paciente_router.get("/tasks/{task_id}")
