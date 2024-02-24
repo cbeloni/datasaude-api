@@ -1,14 +1,16 @@
 import logging
-from logging.handlers import RotatingFileHandler
 import os
 import sys
-
 import click
 import uvicorn
-
+import asyncio
+from logging.handlers import RotatingFileHandler
 from core.config import config
 from app.server import app
 from fastapi.middleware.cors import CORSMiddleware
+
+from listeners.config import inicialize
+from listeners.paciente_listener import on_message as on_message_paciente
 
 # Configurar o logger
 logger = logging.getLogger(__name__)
@@ -33,6 +35,12 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
+
+@app.on_event("startup")
+async def startup_event():
+    loop = asyncio.get_event_loop()
+    asyncio.ensure_future(inicialize(loop, "paciente_upsert", on_message_paciente))
+
 
 @click.command()
 @click.option(
