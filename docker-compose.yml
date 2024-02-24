@@ -30,15 +30,6 @@ services:
         - ${MYSQL_VOLUME}:/var/lib/mysql
       ports:
         - "3306:3306"
-  redis:
-    build:
-      context: .
-      dockerfile: docker/redis/Dockerfile
-    container_name: redis
-    hostname: redis
-    restart: always
-    ports:
-      - '6379:6379'
 
 networks:
   default:
