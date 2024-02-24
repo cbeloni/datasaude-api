@@ -36,10 +36,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def start_celery_worker():
-    celery_worker = celery_app.Worker()
-    celery_worker.start()
-
 @click.command()
 @click.option(
     "--env",
@@ -55,9 +51,6 @@ def start_celery_worker():
 def main(env: str, debug: bool):
     os.environ["ENV"] = env
     os.environ["DEBUG"] = str(debug)
-    celery_thread = Thread(target=start_celery_worker)
-    celery_thread.daemon = True
-    celery_thread.start()
     uvicorn.run(
         app="app.server:app",
         host=config.APP_HOST,
