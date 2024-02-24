@@ -124,10 +124,12 @@ async def post_paciente_salvar(
 @paciente_router.post("/paciente/task", status_code=201)
 async def run_task(payload: PacienteTask):
     task = await send_rabbitmq(payload, "paciente_upsert")
-    return task.taskid
+    content = {"message": task}
+    return JSONResponse(content=content, status_code=200)
 
 @paciente_router.post("/geolocalizacao/task", status_code=201)
 async def run_task(payload: PacienteTask):
     task = await send_rabbitmq(payload, "geolocalizacao_upsert")
-    return task.taskid
+    content = {"message": task}
+    return JSONResponse(content=content, status_code=200)
 
