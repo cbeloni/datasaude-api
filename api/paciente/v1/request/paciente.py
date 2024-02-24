@@ -56,3 +56,7 @@ class PacientePagination(BaseModel):
     currentPage: Optional[int] = Field(None, description="Página atual")
     payload: Optional[List[PacienteBase]] = Field(None, description="Dados dos poluentes")
     aggregationPayload: Optional[List] = Field(None, description="AggregationPayload")
+
+
+class PacienteTask(BaseModel):
+    sleep: int

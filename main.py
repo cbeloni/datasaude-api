@@ -6,11 +6,9 @@ import sys
 import click
 import uvicorn
 
-from celery_task import celery_app
 from core.config import config
 from app.server import app
 from fastapi.middleware.cors import CORSMiddleware
-from threading import Thread
 
 # Configurar o logger
 logger = logging.getLogger(__name__)

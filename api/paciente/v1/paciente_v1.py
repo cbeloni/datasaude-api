@@ -1,7 +1,8 @@
 from celery.result import AsyncResult
 from fastapi import APIRouter, Header, Depends
 
-from api.paciente.v1.request.paciente import PacientePagination, PacienteListRequest, FiltroParams, PacienteBase
+from api.paciente.v1.request.paciente import PacientePagination, PacienteListRequest, FiltroParams, PacienteBase, \
+    PacienteTask
 from api.paciente.v1.request.paciente_coordenadas_request import PacienteCoordenadasLote
 from api.paciente.v1.request.paciente_internacao import PacienteInternacaoPayload
 from api.paciente.v1.request.paciente_interpolacao_request import PacienteInterpolacaoLote
@@ -19,7 +20,7 @@ from app.user.schemas import (
 # from distutils import log
 import logging
 
-from celery_task import paciente_task, geolocalizacao_task
+from listeners.config import send_rabbitmq
 
 log = logging.getLogger(__name__)
 from core.utils.counter import DrawConter
@@ -121,21 +122,12 @@ async def post_paciente_salvar(
     return await salvar_paciente(payload)
 
 @paciente_router.post("/paciente/task", status_code=201)
-def run_task(payload: int):
-    task = paciente_task.delay(int(payload))
-    return JSONResponse({"task_id": task.id})
+async def run_task(payload: PacienteTask):
+    task = await send_rabbitmq(payload, "paciente_upsert")
+    return task.taskid
 
 @paciente_router.post("/geolocalizacao/task", status_code=201)
-def run_task(payload: int):
-    task = geolocalizacao_task.delay(int(payload))
-    return JSONResponse({"task_id": task.id})
+async def run_task(payload: PacienteTask):
+    task = await send_rabbitmq(payload, "geolocalizacao_upsert")
+    return task.taskid
 
-@paciente_router.get("/tasks/{task_id}")
-def get_status(task_id):
-    task_result = AsyncResult(task_id)
-    result = {
-        "task_id": task_id,
-        "task_status": task_result.status,
-        "task_result": task_result.result
-    }
-    return JSONResponse(result)
