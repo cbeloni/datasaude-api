@@ -1,7 +1,7 @@
 import asyncio, time,json
 
 from aio_pika import IncomingMessage
-from config import inicialize
+from listeners.config import inicialize
 import logging
 
 log = logging.getLogger(__name__)
