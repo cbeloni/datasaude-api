@@ -1,6 +1,5 @@
 import logging
 import os
-import sys
 import click
 import uvicorn
 import asyncio
@@ -25,8 +24,8 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 # Redirecionar a saída padrão (stdout) para o logger
-sys.stdout = open('stdout.log', 'w')
-sys.stderr = open('stderr.log', 'w')
+# sys.stdout = open('stdout.log', 'w')
+# sys.stderr = open('stderr.log', 'w')
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,12 +34,6 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
-
-@app.on_event("startup")
-async def startup_event():
-    loop = asyncio.get_event_loop()
-    asyncio.ensure_future(inicialize(loop, "paciente_upsert", on_message_paciente))
-
 
 @click.command()
 @click.option(
