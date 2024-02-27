@@ -84,7 +84,7 @@ async def get_paciente_coordenadas(id) -> any:
     return registros
 
 async def salvar_paciente(pacienteBase: PacienteBase):
-    log.info(f"pacianteBase {pacienteBase}")
+    log.debug(f"pacianteBase {pacienteBase}")
     paciente = Paciente(**pacienteBase.to_model())
     await session.merge(paciente)
     await session.commit()

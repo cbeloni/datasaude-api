@@ -2,14 +2,10 @@ import logging
 import os
 import click
 import uvicorn
-import asyncio
 from logging.handlers import RotatingFileHandler
 from core.config import config
 from app.server import app
 from fastapi.middleware.cors import CORSMiddleware
-
-from listeners.config import inicialize
-from listeners.paciente_listener import on_message as on_message_paciente
 
 # Configurar o logger
 logger = logging.getLogger(__name__)
