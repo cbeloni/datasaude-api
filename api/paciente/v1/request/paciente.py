@@ -29,7 +29,7 @@ class PacienteBase(BaseModel):
     indice_interpolado: Optional[str] = Field(None, example="16.392966003938955")
 
     def to_model(self):
-        campos_remover = ['endereco', 'latitude', 'longitude', 'indice_interpolado', 'poluente']
+        campos_remover = ['id','endereco', 'latitude', 'longitude', 'indice_interpolado', 'poluente']
         return {chave: valor for chave, valor in self.dict().items() if chave not in campos_remover}
 
 
