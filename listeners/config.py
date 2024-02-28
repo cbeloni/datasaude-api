@@ -1,7 +1,7 @@
 from typing import Callable
 
 from aio_pika import connect, Message
-import os, json
+import os
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -17,11 +17,11 @@ async def inicialize(loop: any, queue: str, on_message: Callable):
     await queue.consume(on_message, no_ack = False)
 
 
-async def send_rabbitmq(msg, queue: str):
+async def send_rabbitmq(msg: Message, queue: str):
     connection = await connect(_rabbit)
     channel = await connection.channel()
     await channel.default_exchange.publish(
-        Message(json.dumps(msg.dict()).encode("utf-8")),
+        msg,
         routing_key=queue
     )
     await connection.close()

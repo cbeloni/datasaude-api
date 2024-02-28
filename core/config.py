@@ -2,7 +2,6 @@ import os
 
 from pydantic import BaseSettings
 from dotenv import load_dotenv
-
 load_dotenv()
 
 _host = os.environ.get('MYSQL_HOST')

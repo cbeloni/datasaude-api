@@ -1,4 +1,3 @@
-from celery.result import AsyncResult
 from fastapi import APIRouter, Header, Depends
 
 from api.paciente.v1.request.paciente import PacientePagination, PacienteListRequest, FiltroParams, PacienteBase, \
@@ -123,13 +122,13 @@ async def post_paciente_salvar(
 
 @paciente_router.post("/paciente/async", status_code=201)
 async def run_task(payload: PacienteTask):
-    await send_rabbitmq(payload, "paciente_upsert")
+    await send_rabbitmq(payload.to_message(), "paciente_upsert")
     content = {"message": "sucess"}
     return JSONResponse(content=content, status_code=200)
 
 @paciente_router.post("/geolocalizacao/async", status_code=201)
 async def run_task(payload: PacienteTask):
-    await send_rabbitmq(payload, "geolocalizacao_upsert")
+    await send_rabbitmq(payload.to_message(), "geolocalizacao_upsert")
     content = {"message": "sucess"}
     return JSONResponse(content=content, status_code=200)
 

@@ -1,20 +1,34 @@
-import asyncio, time,json
-
-from aio_pika import IncomingMessage
-
-from config import inicialize
+import asyncio, json, os
 import logging
+from aio_pika import IncomingMessage, Message
+
+from api.paciente.v1.request.paciente import PacienteTaskError, PacienteBase
+from integrations.datasaude_api import paciente_salvar
+from config import inicialize
+from dotenv import load_dotenv
+
+from listeners.config import send_rabbitmq
+
+load_dotenv()
+
+
+_datasaude_api = os.environ.get('DATASAUDE_API')
 
 log = logging.getLogger(__name__)
+
 
 async def on_message(message: IncomingMessage):
     try:
         log.info("Processamento mensagem {}".format(message.body))
         body = message.body.decode("utf-8")
-        message_body_dict = json.loads(body)
-        # await salvar_paciente(message_body_dict.dict())
-        time.sleep(int(message_body_dict["sleep"]))
-        log.info("Fim mensagem {}".format(message.body))
+        payload = json.loads(body)
+        paciente = PacienteBase(**payload)
+        result = await paciente_salvar(paciente.json())
+        if (result.status_code != 200):
+            payload_deadletter = PacienteTaskError(**payload)
+            payload_deadletter.error = result.content
+            await send_rabbitmq(payload_deadletter.to_message(), "paciente_deadletter")
+        log.info(f"Fim mensagem {message.body} - resultado {result}")
         await message.ack()
     except Exception as e:
         log.error(f"Erro no processamento da mensagem: {e}")

@@ -1,9 +1,10 @@
 from datetime import date
 from typing import List, Optional
 from pydantic import BaseModel, Field
+from aio_pika import Message
 
 class PacienteBase(BaseModel):
-    id: int = Field(None, example=35717)
+    id: Optional[int] = Field(None, example=35717)
     CD_ATENDIMENTO: Optional[int] = Field(None, example=1748614)
     NM_PACIENTE: Optional[str] = Field(None, example="Andrew Hernandez")
     DT_ATENDIMENTO: Optional[date] = Field(None, example="2023-03-31")
@@ -29,8 +30,11 @@ class PacienteBase(BaseModel):
     indice_interpolado: Optional[str] = Field(None, example="16.392966003938955")
 
     def to_model(self):
-        campos_remover = ['id','endereco', 'latitude', 'longitude', 'indice_interpolado', 'poluente']
+        campos_remover = ['id', 'endereco', 'latitude', 'longitude', 'indice_interpolado', 'poluente']
         return {chave: valor for chave, valor in self.dict().items() if chave not in campos_remover}
+
+    def to_message(self):
+        return Message(self.json().encode("utf-8"))
 
 
     class Config:
@@ -58,5 +62,11 @@ class PacientePagination(BaseModel):
     aggregationPayload: Optional[List] = Field(None, description="AggregationPayload")
 
 
-class PacienteTask(BaseModel):
-    sleep: int
+class PacienteTask(PacienteBase):
+    ...
+
+    def to_dict(self):
+        return {chave: str(valor) for chave, valor in self.dict().items()}
+
+class PacienteTaskError(PacienteBase):
+    error: Optional[str] = Field(None, description="mensagem de erro ao adicionar na fila")
