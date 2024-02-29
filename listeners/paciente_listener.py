@@ -30,7 +30,7 @@ async def on_message(message: IncomingMessage):
         await message.ack()
     except Exception as e:
         log.error(f"Erro no processamento da mensagem: {e}")
-        await send_deadletter (payload, e)
+        await send_deadletter (payload, str(e))
         await message.ack()
 
 

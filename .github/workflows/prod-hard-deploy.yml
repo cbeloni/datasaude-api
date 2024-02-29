@@ -38,6 +38,9 @@ jobs:
               OPEN_CAGE_API_KEY='${{ secrets.OPEN_CAGE_API_KEY }}'
               GOOGLE_MAPS_API_KEY='${{ secrets.GOOGLE_MAPS_API_KEY }}'
               PATH_VOLUME='${{ secrets.PATH_VOLUME }}'
+              DATASAUDE_ML_URL='${{ secrets.DATASAUDE_ML_URL }}'
+              RABBIT='${{ secrets.RABBIT }}'
+              DATASAUDE_API='${{ secrets.DATASAUDE_API }}'
             EOF
             echo "Buildando projeto"
             cd datasaude-api

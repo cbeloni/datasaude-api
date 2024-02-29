@@ -42,7 +42,7 @@ jobs:
               PATH_VOLUME='${{ secrets.PATH_VOLUME }}'
               DATASAUDE_ML_URL='${{ secrets.DATASAUDE_ML_URL }}'
               RABBIT='${{ secrets.RABBIT }}'
-            
+              DATASAUDE_API='${{ secrets.DATASAUDE_API }}'            
             EOF
             echo "Buildando projeto"
             cd datasaude-api
