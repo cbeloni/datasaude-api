@@ -1,14 +1,13 @@
 import asyncio, json, os
 import logging
-from aio_pika import IncomingMessage, Message
+from aio_pika import IncomingMessage
 
 from api.paciente.v1.request.paciente import PacienteTaskError, PacienteBase
 from integrations.datasaude_api import paciente_salvar
-from config import inicialize
-from dotenv import load_dotenv
-
+from listeners.config import inicialize
 from listeners.config import send_rabbitmq
 
+from dotenv import load_dotenv
 load_dotenv()
 
 
