@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Header, Depends
+from fastapi import APIRouter, Header, Depends, Query
 
 from api.paciente.v1.request.paciente import PacientePagination, PacienteListRequest, FiltroParams, PacienteBase, \
     PacienteTask
@@ -6,7 +6,8 @@ from api.paciente.v1.request.paciente_coordenadas_request import PacienteCoorden
 from api.paciente.v1.request.paciente_internacao import PacienteInternacaoPayload
 from api.paciente.v1.request.paciente_interpolacao_request import PacienteInterpolacaoLote
 from api.paciente.v1.request.paciente_request import PacienteRequest
-from app.paciente.services.coordenadas_lote import service_atualiza_paciente_coordenadas_lote
+from app.paciente.services.coordenadas_insert import service_atualiza_paciente_coordenadas_lote, \
+    service_atualiza_paciente_por_id
 from app.paciente.services.paciente_service import obtem_paciente_service, paciente_list, get_paciente_coordenadas, \
     salvar_paciente
 from app.poluente.services.interpolacao_service import indice_poluente_lote
@@ -38,6 +39,17 @@ _counter = DrawConter()
 async def atualiza_paciente_coordenadas_lote(payload: PacienteCoordenadasLote):
     log.info("Iniciando atualização paciante coordenadas lote")
     return await service_atualiza_paciente_coordenadas_lote(payload)
+
+@paciente_router.post(
+    "/coordenadas/{id}",
+    response_model={},
+    response_model_exclude={},
+    responses={"400": {"model": ExceptionResponseSchema}},
+    # dependencies=[Depends(PermissionDependency([IsAdmin]))],
+)
+async def atualiza_paciente_coordenadas_lote(id: int = Query(10, description="id do paciente")):
+    log.info("Iniciando atualização paciante por id")
+    return await service_atualiza_paciente_por_id(id)
 
 @paciente_router.post(
     "/interpolacao",
@@ -120,7 +132,7 @@ async def post_paciente_salvar(
     log.info(f"Salvando paciante {payload}")
     return await salvar_paciente(payload)
 
-@paciente_router.post("/paciente/async", status_code=201)
+@paciente_router.post("/async", status_code=201)
 async def run_task(payload: PacienteTask):
     await send_rabbitmq(payload.to_message(), "paciente_upsert")
     content = {"message": "sucess"}
