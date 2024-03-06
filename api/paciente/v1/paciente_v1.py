@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Header, Depends, Query
 
 from api.paciente.v1.request.paciente import PacientePagination, PacienteListRequest, FiltroParams, PacienteBase, \
-    PacienteTask
+    PacienteTask, PacienteCoordenadasTask
 from api.paciente.v1.request.paciente_coordenadas_request import PacienteCoordenadasLote
 from api.paciente.v1.request.paciente_internacao import PacienteInternacaoPayload
 from api.paciente.v1.request.paciente_interpolacao_request import PacienteInterpolacaoLote
@@ -139,7 +139,7 @@ async def run_task(payload: PacienteTask):
     return JSONResponse(content=content, status_code=200)
 
 @paciente_router.post("/geolocalizacao/async", status_code=201)
-async def run_task(payload: PacienteTask):
+async def run_geolocalizacao_task(payload: PacienteCoordenadasTask):
     await send_rabbitmq(payload.to_message(), "geolocalizacao_upsert")
     content = {"message": "sucess"}
     return JSONResponse(content=content, status_code=200)

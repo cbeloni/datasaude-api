@@ -68,5 +68,11 @@ class PacienteTask(PacienteBase):
     def to_dict(self):
         return {chave: str(valor) for chave, valor in self.dict().items()}
 
+class PacienteCoordenadasTask(BaseModel):
+    id: Optional[int] = Field(None, example=35717)
+
+    def to_message(self):
+        return Message(self.json().encode("utf-8"))
+
 class PacienteTaskError(PacienteBase):
     error: Optional[str] = Field(None, description="mensagem de erro ao adicionar na fila")

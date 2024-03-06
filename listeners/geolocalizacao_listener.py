@@ -1,23 +1,31 @@
 import asyncio, time, json
 from aio_pika import IncomingMessage
+
+from api.paciente.v1.request.paciente import PacienteCoordenadasTask
 from config import inicialize
 import logging
+
+from integrations.datasaude_api import geolocalizacao_salvar
+from listeners.paciente_listener import send_deadletter
 
 log = logging.getLogger(__name__)
 
 async def on_message(message: IncomingMessage):
+    payload = None
     try:
         log.info("Processamento mensagem {}".format(message.body))
-        print("Processamento mensagem {}".format(message.body))
         body = message.body.decode("utf-8")
-        message_body_dict = json.loads(body)
-        time.sleep(int(message_body_dict["sleep"]))
-        log.info("Fim mensagem {}".format(message.body))
-        print("Fim mensagem {}".format(message.body))
+        payload = json.loads(body)
+        paciente = PacienteCoordenadasTask(**payload)
+        result = await geolocalizacao_salvar(paciente.id)
+        if (result.status_code != 200):
+            await send_deadletter(payload, result.content)
+        log.info(f"Fim mensagem {message.body} - resultado {result}")
         await message.ack()
     except Exception as e:
         log.error(f"Erro no processamento da mensagem: {e}")
-        print(f"Erro no processamento da mensagem: {e}")
+        await send_deadletter (payload, str(e))
+        await message.ack()
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
