@@ -1,12 +1,19 @@
-import asyncio, time, json
+import asyncio, json, os
+import logging
 from aio_pika import IncomingMessage
 
 from api.paciente.v1.request.paciente import PacienteCoordenadasTask
-from config import inicialize
-import logging
-
 from integrations.datasaude_api import geolocalizacao_salvar
+from listeners.config import inicialize
+
+from dotenv import load_dotenv
+
 from listeners.paciente_listener import send_deadletter
+
+load_dotenv()
+
+
+_datasaude_api = os.environ.get('DATASAUDE_API')
 
 log = logging.getLogger(__name__)
 

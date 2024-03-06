@@ -11,4 +11,5 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.create_task(inicialize(loop, "paciente_upsert", on_message_paciente))
     loop.create_task(inicialize(loop, "geolocalizacao_upsert", on_message_geolocalizacao))
+    log.info("Listeners inicializados")
     loop.run_forever()
