@@ -35,6 +35,20 @@ def query_paciente_poluente():
            limit :limit;
     """
 
+def query_paciente_poluente_id():
+    return """
+        select p.ID, pc.id id_coordenada, replace(p.DT_ATENDIMENTO, '-','') dt_atendimento, pc.x, pc.y, pp.poluente, arquivo_geojson
+          from paciente p,
+               paciente_coordenadas pc,
+               poluente_plot pp
+         where p.ID = pc.id_paciente
+           and replace(p.DT_ATENDIMENTO, '-','') =  pp.data_coleta
+           and not exists (select 1 from paciente_interpolacao pi where pc.id = pi.id_coordenada and pp.poluente = pi.poluente)
+           and pc.validado = 1
+           and pc.id = :id_coordenada
+           order by DT_ATENDIMENTO, p.id, pp.poluente asc;
+    """
+
 
 def insert_paciente_interpolacao(id_coordenada, dt_atendimento, poluente, indice_interpolado):
     return """
@@ -46,6 +60,23 @@ def insert_paciente_interpolacao(id_coordenada, dt_atendimento, poluente, indice
 async def indice_poluente_lote(pacienteInterpolacaoLote):
     log.info(f"Inicinado indice poluente lote: {pacienteInterpolacaoLote}")
     paciente_poluentes = (await session.execute(query_paciente_poluente(), pacienteInterpolacaoLote.to_dict())).all()
+    indices_paciente_poluentes = []
+    for row in paciente_poluentes:
+        id, id_coordenada, dt_atendimento, x, y, poluente, arquivo_geojson = row
+        indice_interpolado = indice_poluente_por_utm(x, y, PATH_VOLUME + arquivo_geojson, "media_diaria")
+        query_paciente_interpolado = insert_paciente_interpolacao(id_coordenada, dt_atendimento, poluente, indice_interpolado)
+        await session.execute(query_paciente_interpolado)
+        await session.commit()
+        dict_interpolado = {
+            'id': id, 'id_coordenada': id_coordenada, 'dt_atendimento': dt_atendimento, 'x': x,
+            'y': y, 'poluente': poluente, 'arquivo_geojson': arquivo_geojson, 'indice_interpolado': indice_interpolado,
+        }
+        indices_paciente_poluentes.append(dict_interpolado)
+    return indices_paciente_poluentes
+
+async def indice_poluente_por_id(pacienteInterpolacaoId):
+    log.info(f"Inicinado indice poluente lote: {pacienteInterpolacaoId}")
+    paciente_poluentes = (await session.execute(query_paciente_poluente_id(), pacienteInterpolacaoId.dict())).all()
     indices_paciente_poluentes = []
     for row in paciente_poluentes:
         id, id_coordenada, dt_atendimento, x, y, poluente, arquivo_geojson = row

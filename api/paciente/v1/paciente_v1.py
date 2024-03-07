@@ -4,13 +4,13 @@ from api.paciente.v1.request.paciente import PacientePagination, PacienteListReq
     PacienteTask, PacienteCoordenadasTask
 from api.paciente.v1.request.paciente_coordenadas_request import PacienteCoordenadasLote
 from api.paciente.v1.request.paciente_internacao import PacienteInternacaoPayload
-from api.paciente.v1.request.paciente_interpolacao_request import PacienteInterpolacaoLote
+from api.paciente.v1.request.paciente_interpolacao_request import PacienteInterpolacaoLote, PacienteInterpolacaoTask
 from api.paciente.v1.request.paciente_request import PacienteRequest
 from app.paciente.services.coordenadas_insert import service_atualiza_paciente_coordenadas_lote, \
     service_atualiza_paciente_por_id
 from app.paciente.services.paciente_service import obtem_paciente_service, paciente_list, get_paciente_coordenadas, \
     salvar_paciente
-from app.poluente.services.interpolacao_service import indice_poluente_lote
+from app.poluente.services.interpolacao_service import indice_poluente_lote, indice_poluente_por_id
 from app.paciente.services.internacao_service import execute as internacao_service_execute
 from fastapi.responses import JSONResponse
 
@@ -61,6 +61,17 @@ async def atualiza_paciente_coordenadas_lote(id: int = Query(10, description="id
 async def atualiza_paciente_interpolacao_lote(payload: PacienteInterpolacaoLote):
     log.info("Iniciando atualização paciante interpolacao lote")
     return await indice_poluente_lote(payload)
+
+@paciente_router.post(
+    "/interpolacao/{id}",
+    response_model={},
+    response_model_exclude={},
+    responses={"400": {"model": ExceptionResponseSchema}},
+    # dependencies=[Depends(PermissionDependency([IsAdmin]))],
+)
+async def atualiza_paciente_interpolacao_lote(id: int = Query(118, description="id da coordenada")):
+    log.info("Iniciando atualização paciante interpolacao por id")
+    return await indice_poluente_por_id(PacienteInterpolacaoTask(id_coordenada=id))
 
 @paciente_router.post(
     "/internacao",

@@ -16,3 +16,6 @@ class PacienteInterpolacaoLote(BaseModel):
             "limit": self.limit,
             "ano": self.ano,
         }
+
+class PacienteInterpolacaoTask(BaseModel):
+    id_coordenada: int = Field(..., example=118)
