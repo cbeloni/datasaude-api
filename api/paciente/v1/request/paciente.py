@@ -74,5 +74,11 @@ class PacienteCoordenadasTask(BaseModel):
     def to_message(self):
         return Message(self.json().encode("utf-8"))
 
+class PacienteInterpolacaoTask(BaseModel):
+    id: Optional[int] = Field(None, example=118)
+
+    def to_message(self):
+        return Message(self.json().encode("utf-8"))
+
 class PacienteTaskError(PacienteBase):
     error: Optional[str] = Field(None, description="mensagem de erro ao adicionar na fila")

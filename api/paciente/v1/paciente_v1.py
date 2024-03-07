@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Header, Depends, Query
 
 from api.paciente.v1.request.paciente import PacientePagination, PacienteListRequest, FiltroParams, PacienteBase, \
-    PacienteTask, PacienteCoordenadasTask
+    PacienteTask, PacienteCoordenadasTask, PacienteInterpolacaoTask
 from api.paciente.v1.request.paciente_coordenadas_request import PacienteCoordenadasLote
 from api.paciente.v1.request.paciente_internacao import PacienteInternacaoPayload
-from api.paciente.v1.request.paciente_interpolacao_request import PacienteInterpolacaoLote, PacienteInterpolacaoTask
+from api.paciente.v1.request.paciente_interpolacao_request import PacienteInterpolacaoLote
 from api.paciente.v1.request.paciente_request import PacienteRequest
 from app.paciente.services.coordenadas_insert import service_atualiza_paciente_coordenadas_lote, \
     service_atualiza_paciente_por_id
@@ -155,3 +155,8 @@ async def run_geolocalizacao_task(payload: PacienteCoordenadasTask):
     content = {"message": "sucess"}
     return JSONResponse(content=content, status_code=200)
 
+@paciente_router.post("/interpolacao_por_id/async", status_code=201)
+async def run_interpolacao_task(payload: PacienteInterpolacaoTask):
+    await send_rabbitmq(payload.to_message(), "interpolacao_insert")
+    content = {"message": "sucess"}
+    return JSONResponse(content=content, status_code=200)

@@ -1,5 +1,7 @@
-from pydantic import BaseModel, Field, validator
+from typing import Optional
 
+from pydantic import BaseModel, Field, validator
+from aio_pika import Message
 
 class PacienteInterpolacaoLote(BaseModel):
     limit: int = Field(..., example=2500)
@@ -16,6 +18,3 @@ class PacienteInterpolacaoLote(BaseModel):
             "limit": self.limit,
             "ano": self.ano,
         }
-
-class PacienteInterpolacaoTask(BaseModel):
-    id_coordenada: int = Field(..., example=118)
