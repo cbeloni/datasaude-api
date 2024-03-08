@@ -2,9 +2,9 @@ import asyncio, json, os
 import logging
 from aio_pika import IncomingMessage
 
-from api.paciente.v1.request.paciente import PacienteCoordenadasTask
+from api.paciente.v1.request.paciente import PacienteCoordenadasTask, PacienteInterpolacaoTask
 from integrations.datasaude_api import geolocalizacao_salvar
-from listeners.config import inicialize
+from listeners.config import inicialize, send_rabbitmq
 
 from dotenv import load_dotenv
 
@@ -27,6 +27,12 @@ async def on_message(message: IncomingMessage):
         result = await geolocalizacao_salvar(paciente.id)
         if (result.status_code != 200):
             await send_deadletter(payload, result.content)
+
+        contents_json = json.loads(result.content.decode('utf-8'))
+        for content in contents_json:
+            paciente_interpolacao_task = PacienteInterpolacaoTask(id=str(content['id']))
+            await send_rabbitmq(paciente_interpolacao_task.to_message(), "interpolacao_insert")
+
         log.info(f"Fim mensagem {message.body} - resultado {result}")
         await message.ack()
     except Exception as e:

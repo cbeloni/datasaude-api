@@ -93,8 +93,8 @@ async def service_atualiza_paciente_por_id(id: int, provider: str = "opencage"):
                             VALUES (:id_paciente, :endereco, :latitude, :longitude, :x, :y, :acuracia, :provider, :response, 
                                     :postcode, :city, :state, :country, :county, :quarter, :suburb, :formatted, :validado, NOW(), NOW())
                           """
-        await session.execute(inserir_sql, paciente_coordenadas.dict())
+        result = await session.execute(inserir_sql, paciente_coordenadas.dict())
         await session.commit()
-
+        response['id'] = result.lastrowid
         dados_coordenadas_lista.append(response)
     return dados_coordenadas_lista

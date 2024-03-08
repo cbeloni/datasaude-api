@@ -45,7 +45,7 @@ def query_paciente_poluente_id():
            and replace(p.DT_ATENDIMENTO, '-','') =  pp.data_coleta
            and not exists (select 1 from paciente_interpolacao pi where pc.id = pi.id_coordenada and pp.poluente = pi.poluente)
            and pc.validado = 1
-           and pc.id = :id_coordenada
+           and pc.id = :id
            order by DT_ATENDIMENTO, p.id, pp.poluente asc;
     """
 

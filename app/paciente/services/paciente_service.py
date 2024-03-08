@@ -101,4 +101,5 @@ async def salvar_paciente(pacienteBase: PacienteBase):
         session.add(paciente)
 
     await session.commit()
-    return paciente
+    paciente_retorno = await session.execute(query)
+    return paciente_retorno.scalar_one_or_none()

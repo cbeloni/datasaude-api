@@ -4,6 +4,7 @@ from aio_pika import IncomingMessage
 
 from api.paciente.v1.request.paciente import PacienteInterpolacaoTask
 from app.poluente.services.interpolacao_service import indice_poluente_por_id
+from integrations.datasaude_api import interpolacao_salvar
 from listeners.config import inicialize
 
 from dotenv import load_dotenv
@@ -23,8 +24,8 @@ async def on_message(message: IncomingMessage):
         log.info("Processamento mensagem {}".format(message.body))
         body = message.body.decode("utf-8")
         payload = json.loads(body)
-        paciente = PacienteInterpolacaoTask(**payload)
-        result = await indice_poluente_por_id(paciente.id)
+        paciente_interpolacao = PacienteInterpolacaoTask(**payload)
+        result = await interpolacao_salvar(paciente_interpolacao.id)
         if (result.status_code != 200):
             await send_deadletter(payload, result.content)
         log.info(f"Fim mensagem {message.body} - resultado {result}")

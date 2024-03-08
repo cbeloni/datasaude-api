@@ -2,7 +2,7 @@ import asyncio, json, os
 import logging
 from aio_pika import IncomingMessage
 
-from api.paciente.v1.request.paciente import PacienteTaskError, PacienteBase
+from api.paciente.v1.request.paciente import PacienteTaskError, PacienteBase, PacienteCoordenadasTask
 from integrations.datasaude_api import paciente_salvar
 from listeners.config import inicialize
 from listeners.config import send_rabbitmq
@@ -26,6 +26,10 @@ async def on_message(message: IncomingMessage):
         result = await paciente_salvar(paciente.json())
         if (result.status_code != 200):
             await send_deadletter(payload, result.content)
+        content_json = json.loads(result.content.decode('utf-8'))
+        paciente_coordenadas_task = PacienteCoordenadasTask(id=content_json['id'])
+        await send_rabbitmq(paciente_coordenadas_task.to_message(), "geolocalizacao_upsert")
+
         log.info(f"Fim mensagem {message.body} - resultado {result}")
         await message.ack()
     except Exception as e:

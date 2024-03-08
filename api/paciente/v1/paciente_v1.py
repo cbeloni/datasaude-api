@@ -71,7 +71,7 @@ async def atualiza_paciente_interpolacao_lote(payload: PacienteInterpolacaoLote)
 )
 async def atualiza_paciente_interpolacao_lote(id: int = Query(118, description="id da coordenada")):
     log.info("Iniciando atualização paciante interpolacao por id")
-    return await indice_poluente_por_id(PacienteInterpolacaoTask(id_coordenada=id))
+    return await indice_poluente_por_id(PacienteInterpolacaoTask(id=id))
 
 @paciente_router.post(
     "/internacao",
