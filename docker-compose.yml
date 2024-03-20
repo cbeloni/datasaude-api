@@ -27,7 +27,7 @@ services:
         MYSQL_USER: ${MYSQL_USER}
         MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       volumes:
-        - ${MYSQL_VOLUME}:/var/lib/mysql
+        - /mnt/vdb1/mysql_data:/var/lib/mysql
       ports:
         - "3306:3306"
 
