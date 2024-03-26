@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "fastapi-boilerplate"
+name = "datasaude-api"
 version = "0.1.0"
 description = "FastAPI Boilerplate"
 authors = ["Hide <padocon@naver.com>"]
@@ -31,6 +31,7 @@ geopandas = "^0.14.0"
 shapely = "^2.0.1"
 flower = "^1.2.0"
 aio-pika = "^9.4.0"
+requests = "^2.31.0"
 
 [tool.poetry.dev-dependencies]
 behave = "^1.2.6"

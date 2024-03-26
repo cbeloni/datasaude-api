@@ -10,7 +10,8 @@ from app.paciente.services.coordenadas_insert import service_atualiza_paciente_c
     service_atualiza_paciente_por_id
 from app.paciente.services.paciente_service import obtem_paciente_service, paciente_list, get_paciente_coordenadas, \
     salvar_paciente
-from app.poluente.services.interpolacao_service import indice_poluente_lote, indice_poluente_por_id
+from app.poluente.services.interpolacao_service import indice_poluente_lote, indice_poluente_por_id, \
+    consulta_agrupado_dt_atendimento
 from app.paciente.services.internacao_service import execute as internacao_service_execute
 from fastapi.responses import JSONResponse
 
@@ -160,3 +161,17 @@ async def run_interpolacao_task(payload: PacienteInterpolacaoTask):
     await send_rabbitmq(payload.to_message(), "interpolacao_insert")
     content = {"message": "sucess"}
     return JSONResponse(content=content, status_code=200)
+
+
+@paciente_router.get(
+    "/agrupado/{dt_inicial}/{dt_final}",
+    response_model={},
+    response_model_exclude={},
+    responses={"400": {"model": ExceptionResponseSchema}},
+    # dependencies=[Depends(PermissionDependency([IsAdmin]))],
+)
+async def atualiza_paciente_interpolacao_lote(dt_inicial: str = Query('01012022', description="data_inicial"),
+                                              dt_final: str = Query('01012022', description="dt_final")):
+    log.info("Iniciando consulta agrupado por data")
+    paciente_agrupado = { "dt_inicial": dt_inicial, "dt_final": dt_final }
+    return await consulta_agrupado_dt_atendimento(paciente_agrupado)
