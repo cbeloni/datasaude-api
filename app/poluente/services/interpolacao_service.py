@@ -21,12 +21,13 @@ def indice_poluente_por_utm(x, y, arquivo_geojson, campo):
 
 def query_agrupado_data():
     return """
-        SELECT count(1), DT_ATENDIMENTO
+        SELECT count(1) qtd, DT_ATENDIMENTO
           FROM paciente
          WHERE dt_atendimento BETWEEN STR_TO_DATE(:dt_inicial, '%d%m%Y') AND STR_TO_DATE(:dt_final, '%d%m%Y')
       group by DT_ATENDIMENTO
       order by DT_ATENDIMENTO;
     """
+
 
 def query_paciente_poluente():
     return """
