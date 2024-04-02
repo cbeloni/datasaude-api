@@ -170,8 +170,9 @@ async def run_interpolacao_task(payload: PacienteInterpolacaoTask):
     responses={"400": {"model": ExceptionResponseSchema}},
     # dependencies=[Depends(PermissionDependency([IsAdmin]))],
 )
-async def atualiza_paciente_interpolacao_lote(dt_inicial: str = Query('01012022', description="data_inicial"),
-                                              dt_final: str = Query('01012022', description="dt_final")):
+async def consulta_agrupado(dt_inicial: str = Query('01012022', description="data_inicial"),
+                                              dt_final: str = Query('01012022', description="dt_final"),
+                            agrupar: str = "dia"):
     log.info("Iniciando consulta agrupado por data")
     paciente_agrupado = { "dt_inicial": dt_inicial, "dt_final": dt_final }
-    return await consulta_agrupado_dt_atendimento(paciente_agrupado)
+    return await consulta_agrupado_dt_atendimento(paciente_agrupado, agrupar)

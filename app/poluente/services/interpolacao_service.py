@@ -2,6 +2,8 @@ import os
 from shapely.geometry import Point
 import geopandas as gpd
 from distutils import log
+
+from app.paciente.services.queries import query_factory
 from core.db.session import session
 
 PATH_VOLUME = os.environ.get('PATH_VOLUME')
@@ -18,16 +20,6 @@ def indice_poluente_por_utm(x, y, arquivo_geojson, campo):
 
     log.error("O ponto UTM não está dentro do polígono.")
     return 0
-
-def query_agrupado_data():
-    return """
-        SELECT count(1) qtd, DT_ATENDIMENTO
-          FROM paciente
-         WHERE dt_atendimento BETWEEN STR_TO_DATE(:dt_inicial, '%d%m%Y') AND STR_TO_DATE(:dt_final, '%d%m%Y')
-      group by DT_ATENDIMENTO
-      order by DT_ATENDIMENTO;
-    """
-
 
 def query_paciente_poluente():
     return """
@@ -100,7 +92,7 @@ async def indice_poluente_por_id(pacienteInterpolacaoId):
         indices_paciente_poluentes.append(dict_interpolado)
     return indices_paciente_poluentes
 
-async def consulta_agrupado_dt_atendimento(paciente_agrupado):
+async def consulta_agrupado_dt_atendimento(paciente_agrupado, agrupar):
     log.info(f"Iniciado consulta agrupado: {paciente_agrupado}")
-    pacientes_agrupados = (await session.execute(query_agrupado_data(), paciente_agrupado)).all()
+    pacientes_agrupados = (await session.execute(query_factory(agrupar), paciente_agrupado)).all()
     return pacientes_agrupados
