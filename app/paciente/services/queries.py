@@ -18,11 +18,11 @@ def query_agrupado_mes():
 
 def query_agrupado_por_cid():
     return """
-        SELECT count(1) qtd, ds_cid
+        SELECT count(1) qtd, concat(CD_CID, '-',DS_CID)
          FROM paciente
         WHERE dt_atendimento BETWEEN STR_TO_DATE(:dt_inicial, '%d%m%Y') AND STR_TO_DATE(:dt_final, '%d%m%Y')
-     GROUP BY ds_cid
-     ORDER BY ds_cid;
+     GROUP BY concat(CD_CID, '-',DS_CID)
+     ORDER BY concat(CD_CID, '-',DS_CID);
     """
 
 def query_factory(query):
