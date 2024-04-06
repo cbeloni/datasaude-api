@@ -35,11 +35,36 @@ def query_agrupado_por_cid_maiores():
      limit 10;
     """
 
+def query_agrupado_internacao_alta():
+    return """
+        SELECT
+                a.DT_ALTA,
+                COALESCE(qtd_internacao, 0) AS qtd_internacao,
+                i.DT_ATENDIMENTO,
+                COALESCE(qtd_alta, 0) AS qtd_alta
+            FROM
+                (SELECT COUNT(1) AS qtd_internacao, DT_ATENDIMENTO
+                FROM paciente
+                WHERE DT_ATENDIMENTO BETWEEN STR_TO_DATE(:dt_inicial, '%d%m%Y') AND STR_TO_DATE(:dt_final, '%d%m%Y')
+                  AND ds_leito IS NOT NULL
+                GROUP BY DT_ATENDIMENTO) AS i
+            JOIN
+                (SELECT COUNT(1) AS qtd_alta, DT_ALTA
+                FROM paciente
+                WHERE DT_ALTA BETWEEN STR_TO_DATE(:dt_inicial, '%d%m%Y') AND STR_TO_DATE(:dt_final, '%d%m%Y')
+                  AND ds_leito IS NOT NULL
+                GROUP BY DT_ALTA) AS a
+            ON i.DT_ATENDIMENTO = a.DT_ALTA
+            ORDER BY i.DT_ATENDIMENTO, a.DT_ALTA;
+    """
+
+
 def query_factory(query):
     query_mappings = {
         'dia': query_agrupado_dia,
         'mes': query_agrupado_mes,
         'cid': query_agrupado_por_cid,
         'cid_maiores': query_agrupado_por_cid_maiores,
+        'internacao_alta': query_agrupado_internacao_alta,
     }
     return query_mappings.get(query.lower(), query_agrupado_dia)()
