@@ -25,10 +25,21 @@ def query_agrupado_por_cid():
      ORDER BY concat(CD_CID, '-',DS_CID);
     """
 
+def query_agrupado_por_cid_maiores():
+    return """
+        SELECT count(1) qtd, concat(CD_CID, '-',DS_CID) cid
+         FROM paciente
+        WHERE dt_atendimento BETWEEN STR_TO_DATE(:dt_inicial, '%d%m%Y') AND STR_TO_DATE(:dt_final, '%d%m%Y')
+     GROUP BY concat(CD_CID, '-',DS_CID)
+     ORDER BY 1 desc
+     limit 10;
+    """
+
 def query_factory(query):
     query_mappings = {
         'dia': query_agrupado_dia,
         'mes': query_agrupado_mes,
         'cid': query_agrupado_por_cid,
+        'cid_maiores': query_agrupado_por_cid_maiores,
     }
     return query_mappings.get(query.lower(), query_agrupado_dia)()
