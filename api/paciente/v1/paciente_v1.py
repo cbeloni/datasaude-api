@@ -172,7 +172,22 @@ async def run_interpolacao_task(payload: PacienteInterpolacaoTask):
 )
 async def consulta_agrupado(dt_inicial: str = Query('01012022', description="data_inicial"),
                                               dt_final: str = Query('01012022', description="dt_final"),
-                            agrupar: str = "dia"):
+                            filtro: str = "dia"):
     log.info("Iniciando consulta agrupado por data")
-    paciente_agrupado = { "dt_inicial": dt_inicial, "dt_final": dt_final }
-    return await consulta_agrupado_dt_atendimento(paciente_agrupado, agrupar)
+    paciente_agrupado = {"dt_inicial": dt_inicial, "dt_final": dt_final}
+    return await consulta_agrupado_dt_atendimento(paciente_agrupado, filtro)
+
+
+@paciente_router.get(
+    "/agrupado/cid/{dt_inicial}/{dt_final}",
+    response_model={},
+    response_model_exclude={},
+    responses={"400": {"model": ExceptionResponseSchema}},
+    # dependencies=[Depends(PermissionDependency([IsAdmin]))],
+)
+async def consulta_agrupado(dt_inicial: str = Query('01012022', description="data inicial"),
+                                              dt_final: str = Query('01012022', description="data final"),
+                            query: str = "dia"):
+    log.info("Iniciando consulta agrupado por data")
+    filtro = {"dt_inicial": dt_inicial, "dt_final": dt_final}
+    return await consulta_agrupado_dt_atendimento(filtro, query)

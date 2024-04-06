@@ -96,3 +96,8 @@ async def consulta_agrupado_dt_atendimento(paciente_agrupado, agrupar):
     log.info(f"Iniciado consulta agrupado: {paciente_agrupado}")
     pacientes_agrupados = (await session.execute(query_factory(agrupar), paciente_agrupado)).all()
     return pacientes_agrupados
+
+async def consulta_agrupado_por_cid(filtro, query):
+    log.info(f"Iniciado consulta agrupado por cid: {filtro}")
+    pacientes_agrupados = (await session.execute(query_factory(query), filtro)).all()
+    return pacientes_agrupados
