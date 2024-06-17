@@ -34,7 +34,7 @@ async def paciente_list(
         start: int = 0,
         filter: FiltroParams = None
     ) -> (any, int):
-        query = (select(Paciente.id, Paciente.CD_ATENDIMENTO, Paciente.NM_PACIENTE, Paciente.DT_ATENDIMENTO, Paciente.TP_ATENDIMENTO, Paciente.DS_ORI_ATE, Paciente.DS_LEITO, Paciente.DT_ALTA, Paciente.CD_SGRU_CID, Paciente.CD_CID, Paciente.DS_CID, Paciente.SN_INTERNADO, Paciente.DT_NASC, Paciente.IDADE, Paciente.TP_SEXO,
+        query = (select(Paciente.id, Paciente.CD_ATENDIMENTO, Paciente.NM_PACIENTE, Paciente.DT_ATENDIMENTO, Paciente.TP_ATENDIMENTO, Paciente.DS_ORI_ATE, Paciente.DS_LEITO, Paciente.DT_ALTA, Paciente.CD_SGRU_CID, Paciente.CD_CID, Paciente.DS_CID, Paciente.SN_INTERNADO, Paciente.DS_ENDERECO, Paciente.NR_ENDERECO, Paciente.NM_BAIRRO, Paciente.NR_CEP, Paciente.DT_NASC, Paciente.IDADE, Paciente.TP_SEXO,
                        PacienteCoordenadas.endereco, PacienteCoordenadas.latitude, PacienteCoordenadas.longitude,
                         PacienteInterpolacao.poluente, PacienteInterpolacao.indice_interpolado)
                  .join(PacienteCoordenadas, Paciente.id == PacienteCoordenadas.id_paciente)
