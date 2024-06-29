@@ -58,6 +58,16 @@ def query_agrupado_internacao_alta():
             ORDER BY i.DT_ATENDIMENTO, a.DT_ALTA;
     """
 
+def query_insert_paciente_previsao(): # 554
+    return """
+        insert into paciente_previsao (data, valor_historico)
+        select DT_ATENDIMENTO, count(1) as ATENDIMENTOS
+        from paciente p
+        where not exists (select 1 from paciente_previsao pp where pp.data = p.DT_ATENDIMENTO)
+        and p.DT_ATENDIMENTO < DATE_SUB(NOW(), INTERVAL :qtd_dias_corte DAY)
+        group by DT_ATENDIMENTO
+        order by 1 asc
+        """
 
 def query_factory(query):
     query_mappings = {
@@ -66,5 +76,6 @@ def query_factory(query):
         'cid': query_agrupado_por_cid,
         'cid_maiores': query_agrupado_por_cid_maiores,
         'internacao_alta': query_agrupado_internacao_alta,
+        'previsao': query_insert_paciente_previsao
     }
     return query_mappings.get(query.lower(), query_agrupado_dia)()

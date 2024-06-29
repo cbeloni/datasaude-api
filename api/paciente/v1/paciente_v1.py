@@ -6,6 +6,7 @@ from api.paciente.v1.request.paciente_coordenadas_request import PacienteCoorden
 from api.paciente.v1.request.paciente_internacao import PacienteInternacaoPayload
 from api.paciente.v1.request.paciente_interpolacao_request import PacienteInterpolacaoLote
 from api.paciente.v1.request.paciente_request import PacienteRequest
+from app.paciente.services import previsao
 from app.paciente.services.coordenadas_insert import service_atualiza_paciente_coordenadas_lote, \
     service_atualiza_paciente_por_id
 from app.paciente.services.paciente_service import obtem_paciente_service, paciente_list, get_paciente_coordenadas, \
@@ -177,3 +178,14 @@ async def consulta_agrupado(dt_inicial: str = Query('01012022', description="dat
     filtro = {"dt_inicial": dt_inicial, "dt_final": dt_final}
     return await consulta_agrupado_dt_atendimento(filtro, query)
 
+
+@paciente_router.post(
+    "/previsao",
+    response_model={},
+    response_model_exclude={},
+    responses={"400": {"model": ExceptionResponseSchema}}) 
+async def gera_previsao (qtd_dias_previsao: int = Query(5, description="Quantidade de dias para previsão"),
+                         qtd_dias_corte: int = Query(2, description="Quantidade de dias para corte")):
+    log.info("Iniciando consulta agrupado por data")
+    filtro = {"qtd_dias_previsao": qtd_dias_previsao, "qtd_dias_corte": qtd_dias_corte}
+    return await previsao.gera_previsao_serie_temporal(filtro)
