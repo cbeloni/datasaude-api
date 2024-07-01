@@ -17,6 +17,9 @@ spec:
       containers:
         - image: cbeloni/datasaude-api-amd64:latest
           name: datasaude-api
+          envFrom:
+          - secretRef:
+              name: datasaude-api-env-staging
           ports:
             - containerPort: 8000
 ---
