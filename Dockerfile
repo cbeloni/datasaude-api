@@ -2,9 +2,7 @@ FROM ubuntu:22.04
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-COPY . /home
-WORKDIR /home
-ENV ENV=dev
+COPY . .
 RUN apt-get update
 RUN apt-get install -y build-essential python3-greenlet pip git wget
 RUN pip install "poetry"
@@ -15,5 +13,5 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSI
     && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
     && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
 
-RUN chmod +x /home/docker/api/startup.sh
-ENTRYPOINT /home/docker/api/startup.sh
+RUN chmod +x startup.sh
+ENTRYPOINT startup.sh
