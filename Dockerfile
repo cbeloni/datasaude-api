@@ -10,5 +10,4 @@ RUN pip install "poetry"
 RUN poetry config virtualenvs.create false
 RUN poetry lock --no-update
 RUN poetry install --no-dev
-RUN chmod +x startup.sh
-ENTRYPOINT startup.sh
+ENTRYPOINT ["gunicorn", "--bind", "0.0.0.0:8000", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "app.server:app"]
