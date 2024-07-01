@@ -50,7 +50,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: docker/api/Dockerfile
+          context: docker/api/
           platforms: linux/amd64
           push: true
           tags: cbeloni/datasaude-api-amd64:latest
