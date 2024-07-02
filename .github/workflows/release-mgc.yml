@@ -1,0 +1,73 @@
+name: Deploy Staging
+
+on:
+  push:
+    branches:
+      - release-mgc 
+
+jobs:
+  build-and-deploy:
+    environment: staging
+    runs-on: ubuntu-latest
+
+    steps:     
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: cbeloni
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - uses: danielr1996/envsubst-action@1.0.0
+        env:
+            MYSQL_HOST: '${{ secrets.MYSQL_HOST_MGC }}'
+            MYSQL_ROOT_PASSWORD: '${{ secrets.MYSQL_ROOT_PASSWORD }}'
+            MYSQL_DATABASE: '${{ secrets.MYSQL_DATABASE }}'
+            MYSQL_USER: '${{ secrets.MYSQL_USER }}'
+            MYSQL_PASSWORD: '${{ secrets.MYSQL_PASSWORD }}'
+            MYSQL_VOLUME: '${{ secrets.MYSQL_VOLUME }}'
+            AWS_ACCESS_KEY_ID: '${{ secrets.AWS_ACCESS_KEY_ID }}'
+            AWS_SECRET_ACCESS_KEY: '${{ secrets.AWS_SECRET_ACCESS_KEY }}'
+            ENDPOINT_URL: ${{ secrets.ENDPOINT_URL }}
+            OPEN_CAGE_API_KEY: '${{ secrets.OPEN_CAGE_API_KEY }}'
+            GOOGLE_MAPS_API_KEY: '${{ secrets.GOOGLE_MAPS_API_KEY }}'
+            PATH_VOLUME: '${{ secrets.PATH_VOLUME }}'
+            DATASAUDE_ML_URL: '${{ secrets.DATASAUDE_ML_URL }}'
+            RABBIT: '${{ secrets.RABBIT }}'
+            DATASAUDE_API: '${{ secrets.DATASAUDE_API }}'   
+        with:
+          input: .env.template
+          output: .env
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: cbeloni/datasaude-api-amd64:latest
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Set up kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_MGC }}" > ~/.kube/config
+        env:
+          KUBECONFIG: ${{ secrets.KUBECONFIG_MGC }}      
+
+      - name: Apply Kubernetes manifests
+        run: |          
+          kubectl apply -f datasaude-api-mgc.yaml --insecure-skip-tls-verify
+          kubectl rollout restart deployment/datasaude-api --insecure-skip-tls-verify
