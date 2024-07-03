@@ -2,7 +2,7 @@ name: Deploy with docker
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main-old ]
   workflow_dispatch:
 
 jobs:

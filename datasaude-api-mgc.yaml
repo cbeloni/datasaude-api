@@ -55,7 +55,7 @@ spec:
                 name: datasaude-api-svc
                 port:
                   number: 80
-    - host: datasaude-api-mgc.beloni.dev.br
+    - host: datasaude-api.beloni.dev.br
       http:
         paths:
           - path: /

@@ -1,13 +1,13 @@
-name: Deploy Staging
+name: Deploy Prod
 
 on:
   push:
     branches:
-      - release-mgc 
+      - main
 
 jobs:
   build-and-deploy:
-    environment: staging
+    environment: prod
     runs-on: ubuntu-latest
 
     steps:     
