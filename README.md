@@ -9,6 +9,12 @@
 - Dockerize(Hot reload)
 - Event dispatcher
 - Cache
+## setup
+
+1. Instalar poetry e pyenv
+2. pyenv install 3.10.14
+3. poetry env use 3.10.14
+4. poetry install
 
 ## Run
 
