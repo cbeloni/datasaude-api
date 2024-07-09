@@ -63,7 +63,7 @@ class UserService:
 
     async def login(self, email: str, password: str) -> LoginResponseSchema:
         result = await session.execute(
-            select(User).where(and_(User.email == email, password == password))
+            select(User).where(and_(User.email == email, User.password == password))
         )
         user = result.scalars().first()
         if not user:
