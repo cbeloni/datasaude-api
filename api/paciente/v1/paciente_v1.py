@@ -180,12 +180,11 @@ async def consulta_agrupado(dt_inicial: str = Query('01012022', description="dat
 
 
 @paciente_router.post(
-    "/previsao",
+    "/carga_previsao",
     response_model={},
     response_model_exclude={},
     responses={"400": {"model": ExceptionResponseSchema}}) 
-async def gera_previsao (qtd_dias_previsao: int = Query(5, description="Quantidade de dias para previsão"),
-                         qtd_dias_corte: int = Query(2, description="Quantidade de dias para corte")):
+async def gera_previsao (qtd_dias_corte: int = Query(2, description="Quantidade de dias para corte")):
     log.info("Iniciando consulta agrupado por data")
-    filtro = {"qtd_dias_previsao": qtd_dias_previsao, "qtd_dias_corte": qtd_dias_corte}
+    filtro = { "qtd_dias_corte": qtd_dias_corte }
     return await previsao_service.gera_previsao_serie_temporal(filtro)
