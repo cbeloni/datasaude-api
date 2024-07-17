@@ -61,13 +61,20 @@ def query_agrupado_internacao_alta():
 def query_insert_paciente_previsao(): # 554
     return """
             INSERT INTO paciente_previsao (data, valor_historico, cid)
-            SELECT dt_atendimento, count(1) as atendimentos, :cid
-            FROM paciente p
-            WHERE not exists (SELECT 1 FROM paciente_previsao pp WHERE pp.data = p.dt_atendimento AND pp.cid = :cid)
-            AND p.dt_atendimento < date_sub(now(), interval :qtd_dias_corte day)
-            AND (:cid = 'TODOS' or p.ds_cid = :cid)
-            GROUP BY dt_atendimento,  :cid
-            ORDER BY 1 ASC
+            SELECT dt_atendimento,
+                   COUNT(CASE WHEN (:cid = 'TODOS' OR p.ds_cid = :cid) THEN 1 END) AS atendimentos,
+                   :cid
+              FROM paciente p
+             WHERE NOT EXISTS ( 
+                    SELECT 1
+                    FROM paciente_previsao pp
+                    WHERE pp.data = p.dt_atendimento
+                    AND pp.cid = :cid
+                    )
+               AND p.dt_atendimento < DATE_SUB(NOW(), INTERVAL :qtd_dias_corte DAY)
+            GROUP BY dt_atendimento, :cid
+            ORDER BY dt_atendimento ASC;
+
         """
 
 def query_factory(query):
