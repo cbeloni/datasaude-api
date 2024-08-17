@@ -62,16 +62,19 @@ def query_insert_paciente_previsao(): # 554
     return """
             INSERT INTO paciente_previsao (data, valor_historico, cid)
             SELECT dt_atendimento,
-                   COUNT(CASE WHEN (:cid = 'TODOS' OR p.ds_cid = :cid) THEN 1 END) AS atendimentos,
-                   :cid
-              FROM paciente p
-             WHERE NOT EXISTS ( 
+                COUNT(CASE WHEN (:cid = 'TODOS' OR p.ds_cid = :cid) THEN 1 END) AS atendimentos,
+                :cid
+            FROM paciente p
+            WHERE NOT EXISTS (
                     SELECT 1
                     FROM paciente_previsao pp
                     WHERE pp.data = p.dt_atendimento
                     AND pp.cid = :cid
+                    AND pp.tipo_analise = :tipo_analise
                     )
-               AND p.dt_atendimento < DATE_SUB(NOW(), INTERVAL :qtd_dias_corte DAY)
+            AND p.dt_atendimento < DATE_SUB(NOW(), INTERVAL :qtd_dias_corte DAY)
+            AND (:tipo_analise = 'INTERNACAO' AND p.DS_LEITO is not null
+                    OR :tipo_analise = 'ATENDIMENTO')
             GROUP BY dt_atendimento, :cid
             ORDER BY dt_atendimento ASC;
 

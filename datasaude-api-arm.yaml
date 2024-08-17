@@ -15,7 +15,7 @@ spec:
         app: datasaude-api
     spec:
       containers:
-        - image: cbeloni/datasaude-api:amd64
+        - image: cbeloni/datasaude-api:arm64
           name: datasaude-api
           envFrom:
           - secretRef:

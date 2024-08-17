@@ -3,11 +3,11 @@ name: Deploy Prod
 on:
   push:
     branches:
-      - main
+      - release
 
 jobs:
   build-and-deploy:
-    environment: prod
+    environment: staging
     runs-on: ubuntu-latest
 
     steps:     
@@ -28,7 +28,7 @@ jobs:
 
       - uses: danielr1996/envsubst-action@1.0.0
         env:
-            MYSQL_HOST: '${{ secrets.MYSQL_HOST_MGC }}'
+            MYSQL_HOST: '${{ secrets.MYSQL_HOST_ARM }}'
             MYSQL_ROOT_PASSWORD: '${{ secrets.MYSQL_ROOT_PASSWORD }}'
             MYSQL_DATABASE: '${{ secrets.MYSQL_DATABASE }}'
             MYSQL_USER: '${{ secrets.MYSQL_USER }}'
@@ -51,9 +51,9 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: linux/amd64
+          platforms: linux/arm64
           push: true
-          tags: cbeloni/datasaude-api:amd64
+          tags: cbeloni/datasaude-api:arm64
 
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
