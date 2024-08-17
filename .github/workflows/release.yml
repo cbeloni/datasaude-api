@@ -1,4 +1,4 @@
-name: Deploy Prod
+name: Deploy Staging
 
 on:
   push:
@@ -63,11 +63,11 @@ jobs:
       - name: Set up kubeconfig
         run: |
           mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG_MGC }}" > ~/.kube/config
+          echo "${{ secrets.KUBECONFIG_ARM }}" > ~/.kube/config
         env:
-          KUBECONFIG: ${{ secrets.KUBECONFIG_MGC }}      
+          KUBECONFIG: ${{ secrets.KUBECONFIG_ARM }}      
 
       - name: Apply Kubernetes manifests
         run: |          
-          kubectl apply -f datasaude-api-mgc.yaml --insecure-skip-tls-verify
+          kubectl apply -f datasaude-api-arm.yaml --insecure-skip-tls-verify
           kubectl rollout restart deployment/datasaude-api --insecure-skip-tls-verify
