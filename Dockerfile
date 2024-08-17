@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 COPY . .
 RUN apt-get update
-RUN apt-get install -y build-essential python3-greenlet pip git wget
+RUN apt-get install -y build-essential python3-greenlet pip git wget libgdal-dev
 RUN pip install "poetry"
 RUN poetry config virtualenvs.create false
 RUN poetry lock --no-update

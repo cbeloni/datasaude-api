@@ -185,7 +185,8 @@ async def consulta_agrupado(dt_inicial: str = Query('01012022', description="dat
     response_model_exclude={},
     responses={"400": {"model": ExceptionResponseSchema}}) 
 async def gera_previsao (qtd_dias_corte: int = Query(2, description="Quantidade de dias para corte"),
-                         cid: str = Query("TODOS", description="Quantidade de dias para corte")):
+                         cid: str = Query("TODOS", description="Quantidade de dias para corte"),
+                         tipo_analise: str = Query("ATENDIMENTO", description="Tipo de análise"),):
     log.info("Iniciando consulta agrupado por data")
-    filtro = {  "qtd_dias_corte": qtd_dias_corte , "cid": cid }
+    filtro = {  "qtd_dias_corte": qtd_dias_corte , "cid": cid, "tipo_analise": tipo_analise }
     return await previsao_service.gera_previsao_serie_temporal(filtro)
