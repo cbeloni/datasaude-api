@@ -4,7 +4,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: docker/api/Dockerfile
+      dockerfile: Dockerfile
     container_name: api
     hostname: api
     restart: always
