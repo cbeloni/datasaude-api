@@ -60,10 +60,11 @@ def query_agrupado_internacao_alta():
 
 def query_insert_paciente_previsao(): # 554
     return """
-            INSERT INTO paciente_previsao (data, valor_historico, cid)
+            INSERT INTO paciente_previsao (data, valor_historico, cid, tipo_analise)
             SELECT dt_atendimento,
                 COUNT(CASE WHEN (:cid = 'TODOS' OR p.ds_cid = :cid) THEN 1 END) AS atendimentos,
-                :cid
+                :cid,
+                :tipo_analise
             FROM paciente p
             WHERE NOT EXISTS (
                     SELECT 1
