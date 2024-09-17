@@ -24,6 +24,7 @@ class PacienteBase(BaseModel):
     DT_NASC: Optional[date] = Field(None, example="2014-03-11")
     IDADE: Optional[str] = Field(None, example="9a 0m 19d")
     endereco: Optional[str] = Field(None, example="AVENIDA BOSQUE DA SAUDE, 426, SAUDE - SP")
+    TP_SEXO: Optional[str] = Field(None, example="F")
     latitude: Optional[str] = Field(None, example="-23.6114721")
     longitude: Optional[str] = Field(None, example="-46.631234")
     poluente: Optional[str] = Field(None, example="MP10")
@@ -45,6 +46,8 @@ class FiltroParams(BaseModel):
     dt_atendimento_final: Optional[str]
     idade_meses: Optional[str]
     idade_anos: Optional[str]
+    sexo: Optional[str]
+    cid: Optional[str]
 
 class PacienteListRequest(BaseModel):
         take: int = Field(..., description="quantos registros pegar", example=10)

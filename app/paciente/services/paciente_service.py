@@ -36,7 +36,7 @@ async def paciente_list(
     ) -> (any, int):
         query = (select(Paciente.id, Paciente.CD_ATENDIMENTO, Paciente.NM_PACIENTE, Paciente.DT_ATENDIMENTO, Paciente.TP_ATENDIMENTO, Paciente.DS_ORI_ATE, Paciente.DS_LEITO, Paciente.DT_ALTA, Paciente.CD_SGRU_CID, Paciente.CD_CID, Paciente.DS_CID, Paciente.SN_INTERNADO, Paciente.DS_ENDERECO, Paciente.NR_ENDERECO, Paciente.NM_BAIRRO, Paciente.NR_CEP, Paciente.DT_NASC, Paciente.IDADE, Paciente.TP_SEXO,
                        PacienteCoordenadas.endereco, PacienteCoordenadas.latitude, PacienteCoordenadas.longitude,
-                        PacienteInterpolacao.poluente, PacienteInterpolacao.indice_interpolado)
+                        PacienteInterpolacao.poluente, PacienteInterpolacao.indice_interpolado, Paciente.TP_SEXO, Paciente.DS_CID)
                  .join(PacienteCoordenadas, Paciente.id == PacienteCoordenadas.id_paciente)
                  .join(PacienteInterpolacao, PacienteCoordenadas.id == PacienteInterpolacao.id_coordenada)
                  .where(PacienteCoordenadas.validado == 1))
@@ -52,6 +52,10 @@ async def paciente_list(
             query = query.where(text("TIMESTAMPDIFF(MONTH, dt_nasc, CURRENT_DATE()) = :idade_meses").bindparams(idade_meses=filter.idade_meses))
         if filter.idade_anos is not None:
             query = query.where(text("TIMESTAMPDIFF(YEAR, dt_nasc, CURRENT_DATE()) = :idade_anos").bindparams(idade_anos=filter.idade_anos))
+        if filter.sexo is not None:
+            query = query.where(Paciente.TP_SEXO == filter.sexo)
+        if filter.cid is not None:
+            query = query.where(Paciente.DS_CID == filter.cid)
 
 
         if limit > 1000:
