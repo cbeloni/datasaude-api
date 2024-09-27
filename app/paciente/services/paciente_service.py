@@ -48,10 +48,22 @@ async def paciente_list(
             query = query.where(Paciente.DT_ATENDIMENTO >= parse(filter.dt_atendimento_inicial))
         if filter.dt_atendimento_final is not None:
             query = query.where(Paciente.DT_ATENDIMENTO <= parse(filter.dt_atendimento_final))
-        if filter.idade_meses is not None:
-            query = query.where(text("TIMESTAMPDIFF(MONTH, dt_nasc, CURRENT_DATE()) = :idade_meses").bindparams(idade_meses=filter.idade_meses))
-        if filter.idade_anos is not None:
-            query = query.where(text("TIMESTAMPDIFF(YEAR, dt_nasc, CURRENT_DATE()) = :idade_anos").bindparams(idade_anos=filter.idade_anos))
+        if filter.idade_meses_ini is not None and filter.idade_meses_fim is not None:
+            query = query.where(
+            text("TIMESTAMPDIFF(MONTH, dt_nasc, CURRENT_DATE()) >= :idade_meses_ini")
+            .bindparams(idade_meses_ini=filter.idade_meses_ini)
+            ).where(
+            text("TIMESTAMPDIFF(MONTH, dt_nasc, CURRENT_DATE()) <= :idade_meses_fim")
+            .bindparams(idade_meses_fim=filter.idade_meses_fim)
+            )
+        if filter.idade_anos_ini is not None and filter.idade_anos_fim is not None:
+            query = query.where(
+            text("TIMESTAMPDIFF(YEAR, dt_nasc, CURRENT_DATE()) >= :idade_anos_ini")
+            .bindparams(idade_anos_ini=filter.idade_anos_ini)
+            ).where(
+            text("TIMESTAMPDIFF(YEAR, dt_nasc, CURRENT_DATE()) <= :idade_anos_fim")
+            .bindparams(idade_anos_fim=filter.idade_anos_fim)
+            )
         if filter.sexo is not None:
             query = query.where(Paciente.TP_SEXO == filter.sexo)
         if filter.cid is not None:

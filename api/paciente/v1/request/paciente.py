@@ -44,8 +44,10 @@ class PacienteBase(BaseModel):
 class FiltroParams(BaseModel):
     dt_atendimento_inicial: Optional[str]
     dt_atendimento_final: Optional[str]
-    idade_meses: Optional[str]
-    idade_anos: Optional[str]
+    idade_meses_ini: Optional[str]
+    idade_meses_fim: Optional[str]
+    idade_anos_ini: Optional[str]
+    idade_anos_fim: Optional[str]
     sexo: Optional[str]
     cid: Optional[str]
 
