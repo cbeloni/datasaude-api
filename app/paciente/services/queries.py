@@ -78,8 +78,41 @@ def query_insert_paciente_previsao(): # 554
                     OR :tipo_analise = 'ATENDIMENTO')
             GROUP BY dt_atendimento, :cid
             ORDER BY dt_atendimento ASC;
-
         """
+
+def query_select_paciente_previsao(): # 554
+    return """
+            SELECT dt_atendimento,
+                COUNT(CASE WHEN (:cid = 'TODOS' OR p.ds_cid = :cid) THEN 1 END) AS atendimentos,
+                :cid AS cid,
+                :tipo_analise AS tipo_analise,
+                (SELECT count(1)
+                    FROM paciente_previsao pp
+                    WHERE pp.data = p.dt_atendimento
+                    AND pp.cid = :cid
+                    AND pp.tipo_analise = :tipo_analise
+                ) AS qtd_pp
+            FROM paciente p                    
+            WHERE  p.dt_atendimento < DATE_SUB(NOW(), INTERVAL :qtd_dias_corte DAY)
+            AND (:tipo_analise = 'INTERNACAO' AND p.DS_LEITO is not null
+                    OR :tipo_analise = 'ATENDIMENTO')
+            GROUP BY dt_atendimento, :cid
+            ORDER BY dt_atendimento ASC;
+        """
+
+def query_insert_paciente_previsao():
+    return """
+        INSERT INTO paciente_previsao (data, valor_historico, cid, tipo_analise)
+        VALUES (:data, :valor_historico, :cid, :tipo_analise);
+    """
+
+def query_update_paciente_previsao():
+    return """
+                UPDATE paciente_previsao
+                SET valor_historico = :valor_historico
+                WHERE data = :data AND cid = :cid AND tipo_analise = :tipo_analise;
+            """
+
 
 def query_factory(query):
     query_mappings = {
@@ -88,6 +121,9 @@ def query_factory(query):
         'cid': query_agrupado_por_cid,
         'cid_maiores': query_agrupado_por_cid_maiores,
         'internacao_alta': query_agrupado_internacao_alta,
-        'previsao': query_insert_paciente_previsao
+        'previsao': query_insert_paciente_previsao,        
+        'select_paciente_previsao': query_select_paciente_previsao,
+        'insert_paciente_previsao': query_insert_paciente_previsao,
+        'update_paciente_previsao': query_update_paciente_previsao
     }
     return query_mappings.get(query.lower(), query_agrupado_dia)()
