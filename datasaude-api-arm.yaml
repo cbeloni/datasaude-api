@@ -18,8 +18,5 @@ spec:
         - image: cbeloni/datasaude-api:arm64
           imagePullPolicy: Always
           name: datasaude-api
-          envFrom:
-          - secretRef:
-              name: datasaude-api-env-staging
           ports:
             - containerPort: 8000

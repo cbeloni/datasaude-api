@@ -58,7 +58,7 @@ def query_agrupado_internacao_alta():
             ORDER BY i.DT_ATENDIMENTO, a.DT_ALTA;
     """
 
-def query_insert_paciente_previsao(): # 554
+def query_carga_paciente_previsao(): # 554
     return """
             INSERT INTO paciente_previsao (data, valor_historico, cid, tipo_analise)
             SELECT dt_atendimento,
@@ -121,7 +121,7 @@ def query_factory(query):
         'cid': query_agrupado_por_cid,
         'cid_maiores': query_agrupado_por_cid_maiores,
         'internacao_alta': query_agrupado_internacao_alta,
-        'previsao': query_insert_paciente_previsao,        
+        'previsao': query_carga_paciente_previsao,        
         'select_paciente_previsao': query_select_paciente_previsao,
         'insert_paciente_previsao': query_insert_paciente_previsao,
         'update_paciente_previsao': query_update_paciente_previsao
