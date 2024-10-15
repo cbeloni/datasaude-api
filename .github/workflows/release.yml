@@ -69,5 +69,5 @@ jobs:
 
       - name: Apply Kubernetes manifests
         run: |          
-          kubectl apply -f datasaude-api-arm.yaml --insecure-skip-tls-verify
+          kubectl apply -f argocd-arm/datasaude-api-arm.yaml --insecure-skip-tls-verify
           kubectl rollout restart deployment/datasaude-api --insecure-skip-tls-verify
