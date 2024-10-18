@@ -6,6 +6,7 @@ from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
 from concurrent.futures import ThreadPoolExecutor
 import sys
+import socket
 
 load_dotenv()
 
@@ -17,6 +18,7 @@ class ElasticsearchHandler(logging.Handler):
         self.es = Elasticsearch(hosts or ["http://localhost:9200"])
         self.index = index
         self.executor = ThreadPoolExecutor(max_workers=5)  # Define o número de threads
+        self.hostname = socket.gethostname()  # Obter o hostname da máquina
 
     def emit(self, record):
         log_entry = self.format(record)
@@ -28,7 +30,8 @@ class ElasticsearchHandler(logging.Handler):
             "module": record.module,
             "func_name": record.funcName,
             "line": record.lineno,
-            "app": "datasaude-api"
+            "app": "datasaude-api",
+            "hostname": self.hostname  # Adicionar o hostname ao documento de log
         }
         # Envia o log para o Elasticsearch de forma assíncrona
         self.executor.submit(self.send_log, log_document)
