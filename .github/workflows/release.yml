@@ -43,7 +43,7 @@ jobs:
             DATASAUDE_ML_URL: '${{ secrets.DATASAUDE_ML_URL }}'
             RABBIT: '${{ secrets.RABBIT }}'
             DATASAUDE_API: '${{ secrets.DATASAUDE_API }}'
-            ELASTIC_HOST: '${{ secrets.ELASTIC_HOST }}'
+            ELASTIC_HOST: '${{ vars.ELASTIC_HOST }}'
         with:
           input: .env.template
           output: .env
