@@ -8,8 +8,8 @@ from app.paciente.repository.paciente_repository import PacienteRepository
 from core.db.session import session
 from sqlalchemy import select, update, desc, text, func
 from dateutil.parser import parse
-import logging
-log = logging.getLogger(__name__)
+from core.utils.logger import LoggerUtils
+log = LoggerUtils(__name__)
 
 def query_pacientes():
     return """   
@@ -74,7 +74,6 @@ async def paciente_list(
             limit = 1000
 
         count_query = select([func.count()]).select_from(query.alias())
-        print(count_query)
         quantidade = (await session.execute(count_query)).scalar()
 
         query = query.offset(start).limit(limit).order_by(desc(Paciente.id))

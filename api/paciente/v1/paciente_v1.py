@@ -20,11 +20,11 @@ from app.user.schemas import (
     ExceptionResponseSchema,
 )
 # from distutils import log
-import logging
+from core.utils.logger import LoggerUtils
 
 from listeners.config import send_rabbitmq
 
-log = logging.getLogger(__name__)
+log = LoggerUtils(__name__)
 from core.utils.counter import DrawConter
 
 paciente_router = APIRouter()

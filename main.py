@@ -1,27 +1,17 @@
-import logging
 import os
 import click
 import uvicorn
-from logging.handlers import RotatingFileHandler
 from core.config import config
 from app.server import app
 from fastapi.middleware.cors import CORSMiddleware
+from core.utils.logger import LoggerUtils
 
-# Configurar o logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-# Definir o formato do log
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-
-# Configurar o manipulador de arquivo rotativo para o logger
-file_handler = RotatingFileHandler('app.log', maxBytes=1024*1024, backupCount=10)
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-
+logger = LoggerUtils("main")
 # Redirecionar a saída padrão (stdout) para o logger
 # sys.stdout = open('stdout.log', 'w')
 # sys.stderr = open('stderr.log', 'w')
+
+logger.info("Iniciando aplicação")
 
 app.add_middleware(
     CORSMiddleware,

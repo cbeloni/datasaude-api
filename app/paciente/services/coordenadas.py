@@ -1,7 +1,7 @@
 import os
 import requests
 import pyproj
-import logging
+from core.utils.logger import LoggerUtils
 from geopy.geocoders import Nominatim
 
 from app.paciente.exceptions.paciente_exceptions import CoordenadaNaoEncontrada
@@ -9,7 +9,7 @@ from app.paciente.exceptions.paciente_exceptions import CoordenadaNaoEncontrada
 open_cage_api_key = os.environ.get('OPEN_CAGE_API_KEY')
 google_maps_api_key = os.environ.get('GOOGLE_MAPS_API_KEY')
 
-log = logging.getLogger(__name__)
+log = LoggerUtils(__name__)
 
 def execute(address, provider):
 

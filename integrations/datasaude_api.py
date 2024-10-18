@@ -1,12 +1,12 @@
 import os, requests
-import logging
+from core.utils.logger import LoggerUtils
 from dotenv import load_dotenv
 
 load_dotenv()
 
 _datasaude_api = os.environ.get('DATASAUDE_API')
 
-log = logging.getLogger(__name__)
+log = LoggerUtils(__name__)
 
 
 async def paciente_salvar(payload):
