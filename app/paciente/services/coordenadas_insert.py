@@ -7,18 +7,13 @@ from app.paciente.services.coordenadas_validacao import validacao
 async def service_atualiza_paciente_coordenadas_lote(pacienteCoordenadasLote: PacienteCoordenadasLote):
 
     sql = """
-            select p.id, 
-                   CASE
-                        WHEN et.endereco_tratado IS NOT NULL THEN et.endereco_tratado
-                        ELSE CONCAT(p.DS_ENDERECO, ', ', p.NR_ENDERECO, ', ', p.NM_BAIRRO, ' - SP')
-                   END AS endereco_final
-              from paciente p
-          left join endereco_tratado et on p.CD_ATENDIMENTO = et.CD_ATENDIMENTO
-              where not exists (select 1
-                                  from paciente_coordenadas pc
-                                 where pc.id_paciente = p.ID
+            select id_atendimento, 
+                CONCAT(ds_endereco, ', ', nm_bairro, ', SP, ', nr_cep) endereco_final
+            from  paciente_bronquiolite_endereco p
+            where not exists (select 1
+                                from paciente_coordenadas_bronquiolite pc
+                                where pc.id_paciente = p.id_paciente
                                    and (pc.validado in (-1, 1) or pc.provider = :provider) )
-                and YEAR(STR_TO_DATE(DT_ATENDIMENTO, '%Y-%m-%d')) = :ano
               order by 1 asc
               limit :limit;
             """
@@ -27,8 +22,12 @@ async def service_atualiza_paciente_coordenadas_lote(pacienteCoordenadasLote: Pa
     for paciente in pacientes:
         id_paciente = paciente[0]
         endereco = paciente[1]
+        if endereco is None:
+            continue
         response = {'endereco': endereco, 'provider': pacienteCoordenadasLote.provider, 'id_paciente': id_paciente}
         paciente_coordenadas = PacienteCoordenadas.parse_obj(response)
+        paciente_coordenadas.response = f"Processado com sucesso"
+
         try:
             dados_coordenadas = coordenadas.execute(endereco, pacienteCoordenadasLote.provider)
             response.update(dados_coordenadas)
@@ -39,10 +38,10 @@ async def service_atualiza_paciente_coordenadas_lote(pacienteCoordenadasLote: Pa
             paciente_coordenadas = PacienteCoordenadas.parse_obj(response)
             mensagem_erro = f"Erro genérico - não foi possível obter coordenadas {id_paciente}, erro: {ex}"
             log.error(mensagem_erro)
-            paciente_coordenadas.response=mensagem_erro
+            paciente_coordenadas.response = f"Erro genérico - não foi possível obter coordenadas {id_paciente}"
 
         inserir_sql = """
-                        INSERT INTO paciente_coordenadas (id_paciente, endereco, latitude, longitude, x, y, acuracia, provider, response, postcode, city, state, 
+                        INSERT INTO paciente_coordenadas_bronquiolite (id_paciente, endereco, latitude, longitude, x, y, acuracia, provider, response, postcode, city, state, 
                                                           country, county, quarter, suburb, formatted, validado, data_criacao, data_alteracao)
                         VALUES (:id_paciente, :endereco, :latitude, :longitude, :x, :y, :acuracia, :provider, :response, 
                                 :postcode, :city, :state, :country, :county, :quarter, :suburb, :formatted, :validado, NOW(), NOW())
