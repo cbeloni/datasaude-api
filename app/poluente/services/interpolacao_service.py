@@ -2,11 +2,12 @@ import os
 from shapely.geometry import Point
 import geopandas as gpd
 from distutils import log
+import pymysql
 
 from app.paciente.services.queries import query_factory
 from core.db.session import session
 
-PATH_VOLUME = os.environ.get('PATH_VOLUME')
+PATH_VOLUME = os.environ.get("PATH_VOLUME")
 
 
 def indice_poluente_por_utm(x, y, arquivo_geojson, campo):
@@ -21,20 +22,24 @@ def indice_poluente_por_utm(x, y, arquivo_geojson, campo):
     log.error("O ponto UTM não está dentro do polígono.")
     return 0
 
+
 def query_paciente_poluente():
     return """
-        select p.ID, pc.id id_coordenada, replace(p.DT_ATENDIMENTO, '-','') dt_atendimento, pc.x, pc.y, pp.poluente, arquivo_geojson
-          from paciente p,
-               paciente_coordenadas pc,
-               poluente_plot pp
-         where p.ID = pc.id_paciente
-           and replace(p.DT_ATENDIMENTO, '-','') =  pp.data_coleta
-           and not exists (select 1 from paciente_interpolacao pi where pc.id = pi.id_coordenada and pp.poluente = pi.poluente)
-           and pc.validado = 1
-           and YEAR(STR_TO_DATE(p.DT_ATENDIMENTO, '%Y-%m-%d')) = :ano
-           order by DT_ATENDIMENTO, p.id, pp.poluente asc
+          SELECT pb.id_paciente as "id", pc.id id_coordenada, replace(pb.data_atendimento, '-','') dt_atendimento, pc.x, pc.y, pp.poluente, arquivo_geojson
+            from paciente_bronquiolite pb,
+                 paciente_bronquiolite_endereco pbe,
+                 paciente_coordenadas_bronquiolite pc,
+                 poluente_plot pp
+           where pb.id_paciente = pbe.id_paciente
+             and pc.id_atendimento = pbe.id_atendimento
+             and replace(pb.data_atendimento, '-','') =  pp.data_coleta
+             and not exists (select 1 from paciente_interpolacao_bronquiolite pi where pc.id = pi.id_coordenada and pp.poluente = pi.poluente)
+             and pc.validado = 1
+             and pp.arquivo_geojson != ''
+        order by DT_ATENDIMENTO, pc.id_atendimento, pp.poluente asc
            limit :limit;
     """
+
 
 def query_paciente_poluente_id():
     return """
@@ -51,48 +56,93 @@ def query_paciente_poluente_id():
     """
 
 
-def insert_paciente_interpolacao(id_coordenada, dt_atendimento, poluente, indice_interpolado):
+def insert_paciente_interpolacao(
+    id_coordenada, dt_atendimento, poluente, indice_interpolado
+):
     return """
-        INSERT INTO paciente_interpolacao (id_coordenada, data, poluente, indice_interpolado)
+        INSERT INTO paciente_interpolacao_bronquiolite (id_coordenada, data, poluente, indice_interpolado)
         VALUES ('{}', '{}', '{}', '{}');
     """.format(str(id_coordenada), dt_atendimento, poluente, str(indice_interpolado))
 
 
 async def indice_poluente_lote(pacienteInterpolacaoLote):
     log.info(f"Inicinado indice poluente lote: {pacienteInterpolacaoLote}")
-    paciente_poluentes = (await session.execute(query_paciente_poluente(), pacienteInterpolacaoLote.to_dict())).all()
+    paciente_poluentes = (
+        await session.execute(
+            query_paciente_poluente(), pacienteInterpolacaoLote.to_dict()
+        )
+    ).all()
     indices_paciente_poluentes = []
     for row in paciente_poluentes:
-        id, id_coordenada, dt_atendimento, x, y, poluente, arquivo_geojson = row
-        indice_interpolado = indice_poluente_por_utm(x, y, PATH_VOLUME + arquivo_geojson, "media_diaria")
-        query_paciente_interpolado = insert_paciente_interpolacao(id_coordenada, dt_atendimento, poluente, indice_interpolado)
-        await session.execute(query_paciente_interpolado)
-        await session.commit()
-        dict_interpolado = {
-            'id': id, 'id_coordenada': id_coordenada, 'dt_atendimento': dt_atendimento, 'x': x,
-            'y': y, 'poluente': poluente, 'arquivo_geojson': arquivo_geojson, 'indice_interpolado': indice_interpolado,
-        }
-        indices_paciente_poluentes.append(dict_interpolado)
+        try:
+            id, id_coordenada, dt_atendimento, x, y, poluente, arquivo_geojson = row
+            indice_interpolado = indice_poluente_por_utm(
+                x, y, PATH_VOLUME + arquivo_geojson, "media_diaria"
+            )
+            query_paciente_interpolado = insert_paciente_interpolacao(
+                id_coordenada, dt_atendimento, poluente, indice_interpolado
+            )
+            await session.execute(query_paciente_interpolado)
+            await session.commit()
+            dict_interpolado = {
+                "id": id,
+                "id_coordenada": id_coordenada,
+                "dt_atendimento": dt_atendimento,
+                "x": x,
+                "y": y,
+                "poluente": poluente,
+                "arquivo_geojson": arquivo_geojson,
+                "indice_interpolado": indice_interpolado,
+            }
+            indices_paciente_poluentes.append(dict_interpolado)
+
+        except Exception as ex:
+            if "Duplicate entry" in str(ex):
+                log.warn(
+                    f"Registro já existe para interpolação {row} - ignorando duplicata"
+                )
+            else:
+                mensagem_erro = f"Erro genérico - não foi possível interpolar {row}, path: {arquivo_geojson}, erro: {ex}"
+                log.error(mensagem_erro)
+
     return indices_paciente_poluentes
+
 
 async def indice_poluente_por_id(pacienteInterpolacaoId):
     log.info(f"Inicinado indice poluente lote: {pacienteInterpolacaoId}")
-    paciente_poluentes = (await session.execute(query_paciente_poluente_id(), pacienteInterpolacaoId.dict())).all()
+    paciente_poluentes = (
+        await session.execute(
+            query_paciente_poluente_id(), pacienteInterpolacaoId.dict()
+        )
+    ).all()
     indices_paciente_poluentes = []
     for row in paciente_poluentes:
         id, id_coordenada, dt_atendimento, x, y, poluente, arquivo_geojson = row
-        indice_interpolado = indice_poluente_por_utm(x, y, PATH_VOLUME + arquivo_geojson, "media_diaria")
-        query_paciente_interpolado = insert_paciente_interpolacao(id_coordenada, dt_atendimento, poluente, indice_interpolado)
+        indice_interpolado = indice_poluente_por_utm(
+            x, y, PATH_VOLUME + arquivo_geojson, "media_diaria"
+        )
+        query_paciente_interpolado = insert_paciente_interpolacao(
+            id_coordenada, dt_atendimento, poluente, indice_interpolado
+        )
         await session.execute(query_paciente_interpolado)
         await session.commit()
         dict_interpolado = {
-            'id': id, 'id_coordenada': id_coordenada, 'dt_atendimento': dt_atendimento, 'x': x,
-            'y': y, 'poluente': poluente, 'arquivo_geojson': arquivo_geojson, 'indice_interpolado': indice_interpolado,
+            "id": id,
+            "id_coordenada": id_coordenada,
+            "dt_atendimento": dt_atendimento,
+            "x": x,
+            "y": y,
+            "poluente": poluente,
+            "arquivo_geojson": arquivo_geojson,
+            "indice_interpolado": indice_interpolado,
         }
         indices_paciente_poluentes.append(dict_interpolado)
     return indices_paciente_poluentes
 
+
 async def consulta_agrupado_dt_atendimento(paciente_agrupado, agrupar):
     log.info(f"Iniciado consulta agrupado: {paciente_agrupado}")
-    pacientes_agrupados = (await session.execute(query_factory(agrupar), paciente_agrupado)).all()
+    pacientes_agrupados = (
+        await session.execute(query_factory(agrupar), paciente_agrupado)
+    ).all()
     return pacientes_agrupados
