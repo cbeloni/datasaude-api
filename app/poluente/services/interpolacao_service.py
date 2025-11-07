@@ -25,18 +25,20 @@ def indice_poluente_por_utm(x, y, arquivo_geojson, campo):
 
 def query_paciente_poluente():
     return """
-          SELECT pb.id_paciente as "id", pc.id id_coordenada, replace(pb.data_atendimento, '-','') dt_atendimento, pc.x, pc.y, pp.poluente, arquivo_geojson
-            from paciente_bronquiolite pb,
-                 paciente_bronquiolite_endereco pbe,
-                 paciente_coordenadas_bronquiolite pc,
-                 poluente_plot pp
-           where pb.id_paciente = pbe.id_paciente
-             and pc.id_atendimento = pbe.id_atendimento
-             and replace(pb.data_atendimento, '-','') =  pp.data_coleta
-             and not exists (select 1 from paciente_interpolacao_bronquiolite pi where pc.id = pi.id_coordenada and pp.poluente = pi.poluente)
-             and pc.validado = 1
-             and pp.arquivo_geojson != ''
-        order by DT_ATENDIMENTO, pc.id_atendimento, pp.poluente asc
+          select pb.id_paciente as "id", pc.id id_coordenada, replace(pbd.data_atendimento, '-','') dt_atendimento, pc.x, pc.y, pp.poluente, arquivo_geojson
+            from paciente_bronquiolite pb,  
+                paciente_bronquiolite_endereco pbe, 
+                paciente_coordenadas_bronquiolite pc, 
+                poluente_plot pp,
+                paciente_bronquiolite_datas pbd
+          where pb.id_paciente = pbe.id_paciente 
+            and pc.id_atendimento = pbe.id_atendimento
+            and pb.id_paciente  = pbd.id_paciente 
+            and replace(pbd.data_atendimento, '-','') =  pp.data_coleta
+            and not exists (select 1 from paciente_interpolacao_bronquiolite pi where pc.id = pi.id_coordenada and pp.poluente = pi.poluente and pp.data_coleta = pi.data)
+            and pc.validado = 1
+            and pp.arquivo_geojson != ''
+       order by DT_ATENDIMENTO, pc.id_atendimento, pp.poluente asc
            limit :limit;
     """
 
