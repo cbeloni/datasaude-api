@@ -11,20 +11,24 @@ from dateutil.parser import parse
 from core.utils.logger import LoggerUtils
 log = LoggerUtils(__name__)
 
-def query_pacientes():
-    return """   
-           SELECT p.cd_atendimento, p.nm_paciente, pi.id, pi.data, pc.endereco, pc.longitude, pc.latitude, pc.x, pc.y, pi.indice_interpolado as indice, pi.poluente
+def query_pacientes(ds_cid: Optional[str] = None):
+    sql = """   
+           SELECT p.cd_atendimento, p.nm_paciente, pi.id, pi.data, pc.endereco, pc.longitude, pc.latitude, pc.x, pc.y, pi.indice_interpolado as indice, pi.poluente, p.ds_cid
           FROM paciente p, paciente_coordenadas pc, paciente_interpolacao pi
          WHERE p.id = pc.id_paciente
            AND pc.id = pi.id_coordenada
            AND DT_ATENDIMENTO =  :dt_atendimento
            AND pi.poluente = :poluente
            AND pc.validado = 1
-           AND pc.latitude is not null;
+           AND pc.latitude is not null
     """
+    if ds_cid is not None:
+        sql += "           AND p.ds_cid = :ds_cid\n"
+    return sql
 
 async def obtem_paciente_service(filtros):
-    pacientes = (await session.execute(query_pacientes(), filtros.to_dict())).all()
+    params = filtros.to_dict()
+    pacientes = (await session.execute(text(query_pacientes(params.get("ds_cid"))), params)).all()
     return pacientes
 
 
