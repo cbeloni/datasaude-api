@@ -11,7 +11,7 @@ from dateutil.parser import parse
 from core.utils.logger import LoggerUtils
 log = LoggerUtils(__name__)
 
-def query_pacientes(ds_cid: Optional[str] = None):
+def query_pacientes(ds_cid: Optional[str] = None, cid_keys: Optional[list] = None):
     sql = """   
            SELECT p.cd_atendimento, p.nm_paciente, pi.id, pi.data, pc.endereco, pc.longitude, pc.latitude, pc.x, pc.y, pi.indice_interpolado as indice, pi.poluente, p.ds_cid
           FROM paciente p, paciente_coordenadas pc, paciente_interpolacao pi
@@ -23,18 +23,25 @@ def query_pacientes(ds_cid: Optional[str] = None):
            AND pc.latitude is not null
     """
     if ds_cid is not None and ds_cid != "TODOS":
-        if "," in ds_cid:
-            sql += "           AND p.ds_cid IN (:ds_cid_list)\n"
+        cids = [c.strip() for c in ds_cid.split(",")]
+        if len(cids) > 1:
+            placeholders = ", ".join(f":ds_cid_{i}" for i in range(len(cids)))
+            sql += f"           AND p.ds_cid IN ({placeholders})\n"
         else:
-             sql += "           AND p.ds_cid = :ds_cid\n"
+            sql += "           AND p.ds_cid = :ds_cid\n"
     return sql
 
 async def obtem_paciente_service(filtros):
     params = filtros.to_dict()
-    ds_cid = params.get("ds_cid")
-    
-    if ds_cid and "," in ds_cid:
-        params["ds_cid_list"] = tuple(params.get("ds_cid").split(","))
+    ds_cid = params.pop("ds_cid", None)
+
+    if ds_cid is not None and ds_cid != "TODOS":
+        cids = [c.strip() for c in ds_cid.split(",")]
+        if len(cids) > 1:
+            for i, cid in enumerate(cids):
+                params[f"ds_cid_{i}"] = cid
+        else:
+            params["ds_cid"] = cids[0]
 
     pacientes = (await session.execute(text(query_pacientes(ds_cid)), params)).all()
     return pacientes
