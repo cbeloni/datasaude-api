@@ -22,13 +22,21 @@ def query_pacientes(ds_cid: Optional[str] = None):
            AND pc.validado = 1
            AND pc.latitude is not null
     """
-    if ds_cid is not None:
-        sql += "           AND p.ds_cid = :ds_cid\n"
+    if ds_cid is not None and ds_cid != "TODOS":
+        if "," in ds_cid:
+            sql += "           AND p.ds_cid IN (:ds_cid_list)\n"
+        else:
+             sql += "           AND p.ds_cid = :ds_cid\n"
     return sql
 
 async def obtem_paciente_service(filtros):
     params = filtros.to_dict()
-    pacientes = (await session.execute(text(query_pacientes(params.get("ds_cid"))), params)).all()
+    ds_cid = params.get("ds_cid")
+    
+    if ds_cid and "," in ds_cid:
+        params["ds_cid_list"] = tuple(params.get("ds_cid").split(","))
+
+    pacientes = (await session.execute(text(query_pacientes(ds_cid)), params)).all()
     return pacientes
 
 
