@@ -9,17 +9,40 @@
 - Dockerize(Hot reload)
 - Event dispatcher
 - Cache
-## setup
+## Setup
 
-1. Instalar poetry e pyenv
-2. pyenv install 3.10.14
-3. poetry env use 3.10.14
-4. poetry install
+1. Instale `pyenv` e `poetry`.
+2. Instale a versão do Python usada no projeto:
+   ```bash
+   pyenv install 3.10.14
+   ```
+3. Configure o ambiente virtual do `poetry` com essa versão:
+   ```bash
+   poetry env use 3.10.14
+   ```
+4. Instale as dependências:
+   ```bash
+   poetry install
+   ```
+
+## Passo a passo para iniciar a aplicação
+
+1. Entre na pasta do projeto:
+   ```bash
+   cd /caminho/para/datasaude-api
+   ```
+2. Confirme que o arquivo `.env` existe e está configurado.
+3. Inicie a API em ambiente local com recarregamento automático:
+   ```bash
+   poetry run python main.py --env local --debug
+   ```
+4. Acesse a aplicação em:
+   - `http://localhost:8000`
 
 ## Run
 
-```python
-python3 main.py --env local|dev|prod --debug
+```bash
+poetry run python main.py --env local|dev|prod --debug
 ```
 
 ## SQLAlchemy for asyncio context
