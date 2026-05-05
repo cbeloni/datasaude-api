@@ -28,8 +28,6 @@ class Config(BaseSettings):
 class DevelopmentConfig(Config):
     WRITER_DB_URL: str = f"mysql+aiomysql://{_user}:{_password}@{_host}:3306/{_database}"
     READER_DB_URL: str = f"mysql+aiomysql://{_user}:{_password}@{_host}:3306/{_database}"
-    REDIS_HOST: str = "redis"
-    REDIS_PORT: int = 6379
 
 
 class LocalConfig(Config):
