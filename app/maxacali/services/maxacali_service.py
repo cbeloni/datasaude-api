@@ -2,7 +2,8 @@ from typing import Optional
 
 from sqlalchemy import desc, func, select
 
-from api.maxacali.v1.request.maxacali import MaxacaliFiltroParams
+from api.maxacali.v1.request.maxacali import MaxacaliBase, MaxacaliFiltroParams
+from app.maxacali.models.maxacali_caracteristica_model import MaxacaliCaracteristica
 from app.maxacali.models.maxacali_model import Maxacali
 from core.db.session import session
 
@@ -21,7 +22,10 @@ async def maxacali_list(
     start: int = 0,
     filtro: MaxacaliFiltroParams = None,
 ) -> (any, int):
-    query = select(Maxacali)
+    query = (
+        select(Maxacali, MaxacaliCaracteristica)
+        .join(MaxacaliCaracteristica, Maxacali.cd_setor == MaxacaliCaracteristica.cd_setor)
+    )
 
     if prev:
         query = query.where(Maxacali.id < prev)
@@ -63,10 +67,24 @@ async def maxacali_list(
     if limit > 1000:
         limit = 1000
 
-    count_query = select(func.count()).select_from(query.alias())
+    count_subquery = query.with_only_columns(Maxacali.id).order_by(None).distinct().subquery()
+    count_query = select(func.count()).select_from(count_subquery)
     quantidade = (await session.execute(count_query)).scalar()
 
     query = query.offset(start).limit(limit).order_by(desc(Maxacali.id))
-    registros = (await session.execute(query)).scalars().all()
+    rows = (await session.execute(query)).all()
+    registros = []
+    for maxacali, caracteristica in rows:
+        payload = dict(maxacali.__dict__)
+        payload.pop("_sa_instance_state", None)
+        if caracteristica is not None:
+            caracteristica_dict = dict(caracteristica.__dict__)
+            caracteristica_dict.pop("_sa_instance_state", None)
+            for key, value in caracteristica_dict.items():
+                if key in {"id", "cd_setor", "created_at", "updated_at"}:
+                    continue
+                payload[key] = value
+
+        registros.append(MaxacaliBase(**payload))
 
     return registros, quantidade
