@@ -1,6 +1,7 @@
 from typing import Optional
 
 from sqlalchemy import desc, func, select
+from decimal import Decimal, ROUND_HALF_UP
 
 from api.maxacali.v1.request.maxacali import MaxacaliBase, MaxacaliFiltroParams
 from app.maxacali.models.maxacali_caracteristica_model import MaxacaliCaracteristica
@@ -84,6 +85,18 @@ async def maxacali_list(
                 if key in {"id", "cd_setor", "created_at", "updated_at"}:
                     continue
                 payload[key] = value
+
+        try:
+            v00047 = Decimal(payload["v00047"]) if payload.get("v00047") is not None else None
+            v0003 = Decimal(payload["v0003"]) if payload.get("v0003") is not None else None
+            if v00047 is not None and v0003 is not None and v0003 != 0:
+                payload["percentual_domicios_ocupados"] = (v00047 / v0003 * 100).quantize(
+                    Decimal("0.01"), rounding=ROUND_HALF_UP
+                )
+            else:
+                payload["percentual_domicios_ocupados"] = None
+        except Exception:
+            payload["percentual_domicios_ocupados"] = None
 
         registros.append(MaxacaliBase(**payload))
 

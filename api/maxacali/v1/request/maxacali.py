@@ -42,6 +42,7 @@ class MaxacaliBase(BaseModel):
     v0004: Optional[int] = None
     v0005: Optional[Decimal] = None
     v0006: Optional[Decimal] = None
+    percentual_domicios_ocupados: Optional[Decimal] = Field(None)
     v0007: Optional[int] = None
     # campos da tabela maxacali_caracteristica (v00001 .. v00089)
     v00001: Optional[str] = None
@@ -133,11 +134,13 @@ class MaxacaliBase(BaseModel):
     v00087: Optional[str] = None
     v00088: Optional[str] = None
     v00089: Optional[str] = None
+    calculo_um: Optional[Decimal] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
     class Config:
         orm_mode = True
+        allow_population_by_field_name = True
 
 
 class MaxacaliFiltroParams(BaseModel):
