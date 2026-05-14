@@ -6,6 +6,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from api.maxacali.v1.request.maxacali import MaxacaliBase, MaxacaliFiltroParams
 from app.maxacali.models.maxacali_caracteristica_model import MaxacaliCaracteristica
 from app.maxacali.models.maxacali_model import Maxacali
+from app.maxacali.models.maxacali_pessoas_model import MaxacaliPessoas
 from core.db.session import session
 
 
@@ -17,6 +18,21 @@ def _apply_range(query, column, min_value=None, max_value=None):
     return query
 
 
+def _to_decimal_if_numeric(value):
+    if value is None:
+        return None
+    if isinstance(value, (int, float, Decimal)):
+        try:
+            return Decimal(str(value))
+        except Exception:
+            return None
+    if isinstance(value, str):
+        clean = value.strip()
+        if clean.isdigit():
+            return Decimal(clean)
+    return None
+
+
 async def maxacali_list(
     limit: int = None,
     prev: Optional[int] = None,
@@ -24,8 +40,9 @@ async def maxacali_list(
     filtro: MaxacaliFiltroParams = None,
 ) -> (any, int):
     query = (
-        select(Maxacali, MaxacaliCaracteristica)
+        select(Maxacali, MaxacaliCaracteristica, MaxacaliPessoas)
         .join(MaxacaliCaracteristica, Maxacali.cd_setor == MaxacaliCaracteristica.cd_setor)
+        .join(MaxacaliPessoas, Maxacali.cd_setor == MaxacaliPessoas.cd_setor)
     )
 
     if prev:
@@ -75,7 +92,7 @@ async def maxacali_list(
     query = query.offset(start).limit(limit).order_by(desc(Maxacali.id))
     rows = (await session.execute(query)).all()
     registros = []
-    for maxacali, caracteristica in rows:
+    for maxacali, caracteristica, pessoas in rows:
         payload = dict(maxacali.__dict__)
         payload.pop("_sa_instance_state", None)
         if caracteristica is not None:
@@ -85,6 +102,13 @@ async def maxacali_list(
                 if key in {"id", "cd_setor", "created_at", "updated_at"}:
                     continue
                 payload[key] = value
+        if pessoas is not None:
+            pessoas_dict = dict(pessoas.__dict__)
+            pessoas_dict.pop("_sa_instance_state", None)
+            for key, value in pessoas_dict.items():
+                if key in {"id", "cd_setor", "created_at", "updated_at"}:
+                    continue
+                payload[f"pes_{key}"] = value
 
         try:
             v00047 = Decimal(payload["v00047"]) if payload.get("v00047") is not None else None
@@ -97,6 +121,15 @@ async def maxacali_list(
                 payload["percentual_domicios_ocupados"] = None
         except Exception:
             payload["percentual_domicios_ocupados"] = None
+
+        v01696 = _to_decimal_if_numeric(payload.get("pes_v01696"))
+        v0001 = _to_decimal_if_numeric(payload.get("v0001"))
+        if v01696 is None or v0001 is None or v0001 == 0:
+            payload["percentual_pessoas"] = Decimal("0")
+        else:
+            payload["percentual_pessoas"] = (v01696 / v0001 * 100).quantize(
+                Decimal("0.01"), rounding=ROUND_HALF_UP
+            )
 
         registros.append(MaxacaliBase(**payload))
 

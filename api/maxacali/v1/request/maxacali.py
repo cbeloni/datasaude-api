@@ -43,6 +43,7 @@ class MaxacaliBase(BaseModel):
     v0005: Optional[Decimal] = None
     v0006: Optional[Decimal] = None
     percentual_domicios_ocupados: Optional[Decimal] = Field(None)
+    percentual_pessoas: Optional[Decimal] = Field(None)
     v0007: Optional[int] = None
     # campos da tabela maxacali_caracteristica (v00001 .. v00089)
     v00001: Optional[str] = None
@@ -134,7 +135,14 @@ class MaxacaliBase(BaseModel):
     v00087: Optional[str] = None
     v00088: Optional[str] = None
     v00089: Optional[str] = None
-    calculo_um: Optional[Decimal] = None
+    # campos da tabela maxacali_pessoas (pes_v01690 .. pes_v01696)
+    pes_v01690: Optional[str] = None
+    pes_v01691: Optional[str] = None
+    pes_v01692: Optional[str] = None
+    pes_v01693: Optional[str] = None
+    pes_v01694: Optional[str] = None
+    pes_v01695: Optional[str] = None
+    pes_v01696: Optional[str] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
