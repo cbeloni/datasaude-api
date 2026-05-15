@@ -152,7 +152,7 @@ class MaxacaliBase(BaseModel):
 
 
 class MaxacaliFiltroParams(BaseModel):
-    cd_setor: Optional[str] = Field(None, description="Código do setor")
+    cd_setor: Optional[List[str]] = Field(None, description="Lista de códigos do setor")
     situacao: Optional[str] = Field(None, description="Situação")
     nm_uf: Optional[str] = Field(None, description="Nome da UF")
     nm_mun: Optional[str] = Field(None, description="Nome do município")
@@ -165,20 +165,6 @@ class MaxacaliFiltroParams(BaseModel):
 
     area_km2_min: Optional[Decimal] = Field(None, description="Área mínima")
     area_km2_max: Optional[Decimal] = Field(None, description="Área máxima")
-    v0001_min: Optional[int] = Field(None, description="Valor mínimo v0001")
-    v0001_max: Optional[int] = Field(None, description="Valor máximo v0001")
-    v0002_min: Optional[int] = Field(None, description="Valor mínimo v0002")
-    v0002_max: Optional[int] = Field(None, description="Valor máximo v0002")
-    v0003_min: Optional[int] = Field(None, description="Valor mínimo v0003")
-    v0003_max: Optional[int] = Field(None, description="Valor máximo v0003")
-    v0004_min: Optional[int] = Field(None, description="Valor mínimo v0004")
-    v0004_max: Optional[int] = Field(None, description="Valor máximo v0004")
-    v0005_min: Optional[Decimal] = Field(None, description="Valor mínimo v0005")
-    v0005_max: Optional[Decimal] = Field(None, description="Valor máximo v0005")
-    v0006_min: Optional[Decimal] = Field(None, description="Valor mínimo v0006")
-    v0006_max: Optional[Decimal] = Field(None, description="Valor máximo v0006")
-    v0007_min: Optional[int] = Field(None, description="Valor mínimo v0007")
-    v0007_max: Optional[int] = Field(None, description="Valor máximo v0007")
 
 
 class MaxacaliListRequest(BaseModel):

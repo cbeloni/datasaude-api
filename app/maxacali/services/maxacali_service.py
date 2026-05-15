@@ -50,7 +50,7 @@ async def maxacali_list(
 
     if filtro is not None:
         if filtro.cd_setor:
-            query = query.where(Maxacali.cd_setor == filtro.cd_setor)
+            query = query.where(Maxacali.cd_setor.in_(filtro.cd_setor))
         if filtro.situacao:
             query = query.where(Maxacali.situacao.ilike(f"%{filtro.situacao}%"))
         if filtro.nm_uf:
@@ -72,13 +72,6 @@ async def maxacali_list(
             query = query.where(Maxacali.cd_regiao == filtro.cd_regiao)
 
         query = _apply_range(query, Maxacali.area_km2, filtro.area_km2_min, filtro.area_km2_max)
-        query = _apply_range(query, Maxacali.v0001, filtro.v0001_min, filtro.v0001_max)
-        query = _apply_range(query, Maxacali.v0002, filtro.v0002_min, filtro.v0002_max)
-        query = _apply_range(query, Maxacali.v0003, filtro.v0003_min, filtro.v0003_max)
-        query = _apply_range(query, Maxacali.v0004, filtro.v0004_min, filtro.v0004_max)
-        query = _apply_range(query, Maxacali.v0005, filtro.v0005_min, filtro.v0005_max)
-        query = _apply_range(query, Maxacali.v0006, filtro.v0006_min, filtro.v0006_max)
-        query = _apply_range(query, Maxacali.v0007, filtro.v0007_min, filtro.v0007_max)
 
     if limit is None:
         limit = 10
