@@ -3,8 +3,8 @@ from sqlalchemy import Column, BigInteger, Integer, String, TIMESTAMP, text
 from core.db import Base
 
 
-class MaxacaliCaracteristica(Base):
-    __tablename__ = "maxacali_caracteristica"
+class IbgeCaracteristica(Base):
+    __tablename__ = "ibge_caracteristica"
 
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     cd_setor = Column(String(100), nullable=False)

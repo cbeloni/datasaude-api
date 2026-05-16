@@ -5,7 +5,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 
-class MaxacaliBase(BaseModel):
+class IbgeBase(BaseModel):
     id: Optional[int] = None
     cd_setor: Optional[str] = None
     situacao: Optional[str] = None
@@ -45,7 +45,7 @@ class MaxacaliBase(BaseModel):
     percentual_domicios_ocupados: Optional[Decimal] = Field(None)
     percentual_pessoas: Optional[Decimal] = Field(None)
     v0007: Optional[int] = None
-    # campos da tabela maxacali_caracteristica (v00001 .. v00089)
+    # campos da tabela ibge_caracteristica (v00001 .. v00089)
     v00001: Optional[str] = None
     v00002: Optional[str] = None
     v00003: Optional[str] = None
@@ -135,7 +135,7 @@ class MaxacaliBase(BaseModel):
     v00087: Optional[str] = None
     v00088: Optional[str] = None
     v00089: Optional[str] = None
-    # campos da tabela maxacali_pessoas (pes_v01690 .. pes_v01696)
+    # campos da tabela ibge_pessoas (pes_v01690 .. pes_v01696)
     pes_v01690: Optional[str] = None
     pes_v01691: Optional[str] = None
     pes_v01692: Optional[str] = None
@@ -151,7 +151,7 @@ class MaxacaliBase(BaseModel):
         allow_population_by_field_name = True
 
 
-class MaxacaliFiltroParams(BaseModel):
+class IbgeFiltroParams(BaseModel):
     cd_setor: Optional[List[str]] = Field(None, description="Lista de códigos do setor")
     situacao: Optional[str] = Field(None, description="Situação")
     nm_uf: Optional[str] = Field(None, description="Nome da UF")
@@ -167,17 +167,17 @@ class MaxacaliFiltroParams(BaseModel):
     area_km2_max: Optional[Decimal] = Field(None, description="Área máxima")
 
 
-class MaxacaliListRequest(BaseModel):
+class IbgeListRequest(BaseModel):
     take: int = Field(..., description="quantos registros pegar", example=10)
     prev: Optional[int] = Field(None, description="a partir do registro")
     skip: int = Field(..., description="quantidade de registros para pular")
     columns: list = Field(default_factory=list, description="colunas da tabela")
 
 
-class MaxacaliPagination(BaseModel):
+class IbgePagination(BaseModel):
     counter: Optional[int] = Field(None, description="Contador de versão")
     totalRecordCount: Optional[int] = Field(None, description="Total de registros")
     filteredRecordCount: Optional[int] = Field(None, description="Total filtrado")
     totalPages: Optional[float] = Field(None, description="Total de páginas")
     currentPage: Optional[int] = Field(None, description="Página atual")
-    payload: Optional[List[MaxacaliBase]] = Field(None, description="Dados da maxacali")
+    payload: Optional[List[IbgeBase]] = Field(None, description="Dados do ibge")

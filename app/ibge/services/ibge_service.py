@@ -3,10 +3,10 @@ from typing import Optional
 from sqlalchemy import desc, func, select
 from decimal import Decimal, ROUND_HALF_UP
 
-from api.maxacali.v1.request.maxacali import MaxacaliBase, MaxacaliFiltroParams
-from app.maxacali.models.maxacali_caracteristica_model import MaxacaliCaracteristica
-from app.maxacali.models.maxacali_model import Maxacali
-from app.maxacali.models.maxacali_pessoas_model import MaxacaliPessoas
+from api.ibge.v1.request.ibge import IbgeBase, IbgeFiltroParams
+from app.ibge.models.ibge_caracteristica_model import IbgeCaracteristica
+from app.ibge.models.ibge_model import Ibge
+from app.ibge.models.ibge_pessoas_model import IbgePessoas
 from core.db.session import session
 
 
@@ -33,60 +33,60 @@ def _to_decimal_if_numeric(value):
     return None
 
 
-async def maxacali_list(
+async def ibge_list(
     limit: int = None,
     prev: Optional[int] = None,
     start: int = 0,
-    filtro: MaxacaliFiltroParams = None,
+    filtro: IbgeFiltroParams = None,
 ) -> (any, int):
     query = (
-        select(Maxacali, MaxacaliCaracteristica, MaxacaliPessoas)
-        .join(MaxacaliCaracteristica, Maxacali.cd_setor == MaxacaliCaracteristica.cd_setor)
-        .join(MaxacaliPessoas, Maxacali.cd_setor == MaxacaliPessoas.cd_setor)
+        select(Ibge, IbgeCaracteristica, IbgePessoas)
+        .join(IbgeCaracteristica, Ibge.cd_setor == IbgeCaracteristica.cd_setor)
+        .join(IbgePessoas, Ibge.cd_setor == IbgePessoas.cd_setor)
     )
 
     if prev:
-        query = query.where(Maxacali.id < prev)
+        query = query.where(Ibge.id < prev)
 
     if filtro is not None:
         if filtro.cd_setor:
-            query = query.where(Maxacali.cd_setor.in_(filtro.cd_setor))
+            query = query.where(Ibge.cd_setor.in_(filtro.cd_setor))
         if filtro.situacao:
-            query = query.where(Maxacali.situacao.ilike(f"%{filtro.situacao}%"))
+            query = query.where(Ibge.situacao.ilike(f"%{filtro.situacao}%"))
         if filtro.nm_uf:
-            query = query.where(Maxacali.nm_uf.ilike(f"%{filtro.nm_uf}%"))
+            query = query.where(Ibge.nm_uf.ilike(f"%{filtro.nm_uf}%"))
         if filtro.nm_mun:
-            query = query.where(Maxacali.nm_mun.ilike(f"%{filtro.nm_mun}%"))
+            query = query.where(Ibge.nm_mun.ilike(f"%{filtro.nm_mun}%"))
         if filtro.nm_bairro:
-            query = query.where(Maxacali.nm_bairro.ilike(f"%{filtro.nm_bairro}%"))
+            query = query.where(Ibge.nm_bairro.ilike(f"%{filtro.nm_bairro}%"))
 
         if filtro.cd_uf is not None:
-            query = query.where(Maxacali.cd_uf == filtro.cd_uf)
+            query = query.where(Ibge.cd_uf == filtro.cd_uf)
         if filtro.cd_mun is not None:
-            query = query.where(Maxacali.cd_mun == filtro.cd_mun)
+            query = query.where(Ibge.cd_mun == filtro.cd_mun)
         if filtro.cd_sit is not None:
-            query = query.where(Maxacali.cd_sit == filtro.cd_sit)
+            query = query.where(Ibge.cd_sit == filtro.cd_sit)
         if filtro.cd_tipo is not None:
-            query = query.where(Maxacali.cd_tipo == filtro.cd_tipo)
+            query = query.where(Ibge.cd_tipo == filtro.cd_tipo)
         if filtro.cd_regiao is not None:
-            query = query.where(Maxacali.cd_regiao == filtro.cd_regiao)
+            query = query.where(Ibge.cd_regiao == filtro.cd_regiao)
 
-        query = _apply_range(query, Maxacali.area_km2, filtro.area_km2_min, filtro.area_km2_max)
+        query = _apply_range(query, Ibge.area_km2, filtro.area_km2_min, filtro.area_km2_max)
 
     if limit is None:
         limit = 10
     if limit > 1000:
         limit = 1000
 
-    count_subquery = query.with_only_columns(Maxacali.id).order_by(None).distinct().subquery()
+    count_subquery = query.with_only_columns(Ibge.id).order_by(None).distinct().subquery()
     count_query = select(func.count()).select_from(count_subquery)
     quantidade = (await session.execute(count_query)).scalar()
 
-    query = query.offset(start).limit(limit).order_by(desc(Maxacali.id))
+    query = query.offset(start).limit(limit).order_by(desc(Ibge.id))
     rows = (await session.execute(query)).all()
     registros = []
-    for maxacali, caracteristica, pessoas in rows:
-        payload = dict(maxacali.__dict__)
+    for ibge, caracteristica, pessoas in rows:
+        payload = dict(ibge.__dict__)
         payload.pop("_sa_instance_state", None)
         if caracteristica is not None:
             caracteristica_dict = dict(caracteristica.__dict__)
@@ -124,6 +124,6 @@ async def maxacali_list(
                 Decimal("0.01"), rounding=ROUND_HALF_UP
             )
 
-        registros.append(MaxacaliBase(**payload))
+        registros.append(IbgeBase(**payload))
 
     return registros, quantidade
