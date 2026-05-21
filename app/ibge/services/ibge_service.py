@@ -7,6 +7,8 @@ from api.ibge.v1.request.ibge import IbgeBase, IbgeFiltroParams
 from app.ibge.models.ibge_caracteristica_model import IbgeCaracteristica
 from app.ibge.models.ibge_model import Ibge
 from app.ibge.models.ibge_pessoas_model import IbgePessoas
+from app.ibge.models.ibge_pessoas_b_model import IbgePessoasB
+from app.ibge.models.ibge_pessoas_c_model import IbgePessoasC
 from core.db.session import session
 
 
@@ -40,9 +42,11 @@ async def ibge_list(
     filtro: IbgeFiltroParams = None,
 ) -> (any, int):
     query = (
-        select(Ibge, IbgeCaracteristica, IbgePessoas)
+        select(Ibge, IbgeCaracteristica, IbgePessoas, IbgePessoasB, IbgePessoasC)
         .join(IbgeCaracteristica, Ibge.cd_setor == IbgeCaracteristica.cd_setor)
         .join(IbgePessoas, Ibge.cd_setor == IbgePessoas.cd_setor)
+        .join(IbgePessoasB, Ibge.cd_setor == IbgePessoasB.cd_setor)
+        .join(IbgePessoasC, Ibge.cd_setor == IbgePessoasC.cd_setor)
     )
 
     if prev:
@@ -85,7 +89,7 @@ async def ibge_list(
     query = query.offset(start).limit(limit).order_by(desc(Ibge.id))
     rows = (await session.execute(query)).all()
     registros = []
-    for ibge, caracteristica, pessoas in rows:
+    for ibge, caracteristica, pessoas, pessoas_b, pessoas_c in rows:
         payload = dict(ibge.__dict__)
         payload.pop("_sa_instance_state", None)
         if caracteristica is not None:
@@ -102,6 +106,20 @@ async def ibge_list(
                 if key in {"id", "cd_setor", "created_at", "updated_at"}:
                     continue
                 payload[f"pes_{key}"] = value
+        if pessoas_b is not None:
+            pessoas_b_dict = dict(pessoas_b.__dict__)
+            pessoas_b_dict.pop("_sa_instance_state", None)
+            for key, value in pessoas_b_dict.items():
+                if key in {"id", "cd_setor", "created_at", "updated_at"}:
+                    continue
+                payload[f"pes_b_{key}"] = value
+        if pessoas_c is not None:
+            pessoas_c_dict = dict(pessoas_c.__dict__)
+            pessoas_c_dict.pop("_sa_instance_state", None)
+            for key, value in pessoas_c_dict.items():
+                if key in {"id", "cd_setor", "created_at", "updated_at"}:
+                    continue
+                payload[f"pes_c_{key}"] = value
 
         try:
             v00047 = Decimal(payload["v00047"]) if payload.get("v00047") is not None else None
