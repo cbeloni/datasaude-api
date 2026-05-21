@@ -43,10 +43,10 @@ async def ibge_list(
 ) -> (any, int):
     query = (
         select(Ibge, IbgeCaracteristica, IbgePessoas, IbgePessoasB, IbgePessoasC)
-        .join(IbgeCaracteristica, Ibge.cd_setor == IbgeCaracteristica.cd_setor)
-        .join(IbgePessoas, Ibge.cd_setor == IbgePessoas.cd_setor)
-        .join(IbgePessoasB, Ibge.cd_setor == IbgePessoasB.cd_setor)
-        .join(IbgePessoasC, Ibge.cd_setor == IbgePessoasC.cd_setor)
+        .outerjoin(IbgeCaracteristica, Ibge.cd_setor == IbgeCaracteristica.cd_setor)
+        .outerjoin(IbgePessoas, Ibge.cd_setor == IbgePessoas.cd_setor)
+        .outerjoin(IbgePessoasB, Ibge.cd_setor == IbgePessoasB.cd_setor)
+        .outerjoin(IbgePessoasC, Ibge.cd_setor == IbgePessoasC.cd_setor)
     )
 
     if prev:
