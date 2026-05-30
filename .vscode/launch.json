@@ -6,13 +6,15 @@
     "configurations": [
         {
             "name": "Depurador do Python: FastAPI",
-            "type": "debugpy",
+            "type": "python",
             "request": "launch",
-            "module": "uvicorn",
+            "program": "${workspaceFolder}/main.py",
             "args": [
-                "main:app",
+                "--env",
+                "local",
                 "--reload"
             ],
+            "console": "integratedTerminal",
             "jinja": true
         }
     ]

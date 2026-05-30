@@ -22,14 +22,12 @@ class Config(BaseSettings):
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"
     CELERY_BACKEND_URL: str = "redis://localhost:6379/0"
     REDIS_HOST: str = "localhost"
-    REDIS_PORT: int = 6379
+    REDIS_PORT: str = "6379"
 
 
 class DevelopmentConfig(Config):
     WRITER_DB_URL: str = f"mysql+aiomysql://{_user}:{_password}@{_host}:3306/{_database}"
     READER_DB_URL: str = f"mysql+aiomysql://{_user}:{_password}@{_host}:3306/{_database}"
-    REDIS_HOST: str = "redis"
-    REDIS_PORT: int = 6379
 
 
 class LocalConfig(Config):
