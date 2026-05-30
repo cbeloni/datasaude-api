@@ -9,6 +9,7 @@ from app.ibge.models.ibge_model import Ibge
 from app.ibge.models.ibge_pessoas_model import IbgePessoas
 from app.ibge.models.ibge_pessoas_b_model import IbgePessoasB
 from app.ibge.models.ibge_pessoas_c_model import IbgePessoasC
+from app.ibge.services.ibge_formula_service import aplicar_formulas_customizadas
 from core.db.session import session
 
 
@@ -141,6 +142,8 @@ async def ibge_list(
             payload["percentual_pessoas"] = (v01696 / v0001 * 100).quantize(
                 Decimal("0.01"), rounding=ROUND_HALF_UP
             )
+
+        payload = await aplicar_formulas_customizadas(payload)
 
         registros.append(IbgeBase(**payload))
 

@@ -86,11 +86,11 @@ If you need additional logic to use the database, refer to the `get_bind()` meth
 
 Create a new migration
 ``` 
-alembic revision --autogenerate -m "Nome da Migração"
+poetry run alembic revision --autogenerate -m "Nome da Migração"
 ```
 Run migrations
 ```
-alembic upgrade head 
+poetry run alembic upgrade head 
 ```
 
 ## Custom user for authentication

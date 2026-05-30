@@ -990,6 +990,29 @@ class IbgeBase(BaseModel):
     class Config:
         orm_mode = True
         allow_population_by_field_name = True
+        extra = 'allow'
+
+
+class IbgeFormulaCustomizadaBase(BaseModel):
+    id: Optional[int] = None
+    nome: str
+    formula: str
+    ativa: bool = True
+
+    class Config:
+        orm_mode = True
+
+
+class IbgeFormulaCustomizadaCreate(BaseModel):
+    nome: str = Field(..., min_length=1, max_length=120)
+    formula: str = Field(..., min_length=1, max_length=500)
+
+
+class IbgeFormulaCustomizadaListResponse(BaseModel):
+    payload: List[IbgeFormulaCustomizadaBase] = Field(
+        default_factory=list,
+        description='Lista de fórmulas customizadas',
+    )
 
 
 class IbgeFiltroParams(BaseModel):
