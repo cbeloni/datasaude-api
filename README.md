@@ -248,5 +248,4 @@ from core.helpers.cache import Cache, CacheTag
 
 await Cache.remove_by_prefix(prefix="get_user_list")
 await Cache.remove_by_tag(tag=CacheTag.GET_USER_LIST)
-
 ```
