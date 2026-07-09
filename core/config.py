@@ -8,6 +8,7 @@ _host = os.environ.get('MYSQL_HOST')
 _database = os.environ.get('MYSQL_DATABASE')
 _user = os.environ.get('MYSQL_USER')
 _password = os.environ.get('MYSQL_PASSWORD')
+_mongodb_uri = os.environ.get('MONGODB_URI')
 
 class Config(BaseSettings):
     ENV: str = "development"
@@ -16,6 +17,7 @@ class Config(BaseSettings):
     APP_PORT: int = 8000
     WRITER_DB_URL: str = f"mysql+aiomysql://{_user}:{_password}@{_host}:3306/{_database}"
     READER_DB_URL: str = f"mysql+aiomysql://{_user}:{_password}@{_host}:3306/{_database}"
+    MONGODB_URI: str = _mongodb_uri
     JWT_SECRET_KEY: str = "fastapi"
     JWT_ALGORITHM: str = "HS256"
     SENTRY_SDN: str = None

@@ -8,6 +8,7 @@ from api.poluentes.v1.poluente_plot_v1 import poluente_plot_router as poluente_p
 from api.poluentes.v1.poluente_historico_v1 import poluente_historico_router as poluente_historico_v1_router
 from api.paciente.v1.paciente_v1 import paciente_router as paciete_v1_router
 from api.ibge.v1.ibge_v1 import ibge_router as ibge_v1_router
+from api.ibge.v2.ibge_v2 import ibge_v2_router
 
 router = APIRouter()
 router.include_router(user_v1_router, prefix="/api/v1/users", tags=["User"])
@@ -18,6 +19,7 @@ router.include_router(poluente_plot_v1_router, prefix="/api/v1/poluentes_plot", 
 router.include_router(poluente_historico_v1_router, prefix="/api/v1/poluentes_historico", tags=["PoluentesHistorico"])
 router.include_router(paciete_v1_router, prefix="/api/v1/paciente", tags=["Paciente"])
 router.include_router(ibge_v1_router, prefix="/api/v1/ibge", tags=["Ibge"])
+router.include_router(ibge_v2_router, prefix="/api/v2/ibge", tags=["IbgeV2"])
 
 
 __all__ = ["router"]
