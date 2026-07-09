@@ -11,7 +11,7 @@ from app.ibge.services.ibge_mongo_formula_service import (
     listar_formulas_customizadas,
 )
 from core.exceptions import BadRequestException
-from core.mongo import get_mongo_client, get_mongo_database
+from core.mongo import get_mongo_client, get_mongo_database, get_mongo_query_timeout
 
 
 def _normalize_columns(columns: List[str]) -> List[str]:
@@ -92,7 +92,7 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
 
         formulas = await asyncio.wait_for(
             listar_formulas_customizadas(),
-            timeout=30.0,
+            timeout=get_mongo_query_timeout(),
         )
         formula_dependencies = _extract_formula_dependencies(formulas)
 
@@ -115,7 +115,7 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
                 skip,
                 limit,
             ),
-            timeout=30.0,
+            timeout=get_mongo_query_timeout(),
         )
 
         payload_rows = []

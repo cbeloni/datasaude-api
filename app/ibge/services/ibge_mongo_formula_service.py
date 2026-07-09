@@ -8,7 +8,7 @@ from bson import ObjectId
 
 from api.ibge.v2.request.ibge import IbgeFormulaCustomizadaCreate
 from core.exceptions import BadRequestException, NotFoundException
-from core.mongo import get_mongo_client, get_mongo_database
+from core.mongo import get_mongo_client, get_mongo_database, get_mongo_query_timeout
 
 
 FORMULA_COLLECTION_NAME = "ibge_formulas"
@@ -164,21 +164,21 @@ def _remover_formula_sync(formula_id: str):
 async def listar_formulas_customizadas() -> List[Dict]:
     return await asyncio.wait_for(
         asyncio.to_thread(_listar_formulas_sync),
-        timeout=30.0,
+        timeout=get_mongo_query_timeout(),
     )
 
 
 async def criar_formula_customizada(payload: IbgeFormulaCustomizadaCreate):
     return await asyncio.wait_for(
         asyncio.to_thread(_criar_formula_sync, payload),
-        timeout=30.0,
+        timeout=get_mongo_query_timeout(),
     )
 
 
 async def remover_formula_customizada(formula_id: str):
     await asyncio.wait_for(
         asyncio.to_thread(_remover_formula_sync, formula_id),
-        timeout=30.0,
+        timeout=get_mongo_query_timeout(),
     )
 
 
