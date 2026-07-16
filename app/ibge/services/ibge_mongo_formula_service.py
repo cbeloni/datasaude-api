@@ -7,6 +7,11 @@ from typing import Dict, List, Optional
 from bson import ObjectId
 
 from api.ibge.v2.request.ibge import IbgeFormulaCustomizadaCreate
+from app.ibge.services.ibge_mongo_cache_service import (
+    clear_ibge_v2_query_related_cache,
+    get_cached_formulas,
+    set_cached_formulas,
+)
 from core.exceptions import BadRequestException, NotFoundException
 from core.mongo import get_mongo_client, get_mongo_database, get_mongo_query_timeout
 
@@ -162,17 +167,26 @@ def _remover_formula_sync(formula_id: str):
 
 
 async def listar_formulas_customizadas() -> List[Dict]:
-    return await asyncio.wait_for(
+    cached_formulas = await get_cached_formulas()
+    if cached_formulas is not None:
+        return cached_formulas
+
+    formulas = await asyncio.wait_for(
         asyncio.to_thread(_listar_formulas_sync),
         timeout=get_mongo_query_timeout(),
     )
+    await set_cached_formulas(formulas)
+    return formulas
 
 
 async def criar_formula_customizada(payload: IbgeFormulaCustomizadaCreate):
-    return await asyncio.wait_for(
+    response = await asyncio.wait_for(
         asyncio.to_thread(_criar_formula_sync, payload),
         timeout=get_mongo_query_timeout(),
     )
+    await clear_ibge_v2_query_related_cache()
+    await listar_formulas_customizadas()
+    return response
 
 
 async def remover_formula_customizada(formula_id: str):
@@ -180,6 +194,7 @@ async def remover_formula_customizada(formula_id: str):
         asyncio.to_thread(_remover_formula_sync, formula_id),
         timeout=get_mongo_query_timeout(),
     )
+    await clear_ibge_v2_query_related_cache()
 
 
 async def aplicar_formulas_customizadas(payload: dict, formulas: Optional[List[Dict]] = None):

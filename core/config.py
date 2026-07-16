@@ -9,6 +9,7 @@ _database = os.environ.get('MYSQL_DATABASE')
 _user = os.environ.get('MYSQL_USER')
 _password = os.environ.get('MYSQL_PASSWORD')
 _mongodb_uri = os.environ.get('MONGODB_URI')
+_redis_uri = os.environ.get('REDIS_URI') or 'redis://redis.default.svc.cluster.local:6379/0'
 
 class Config(BaseSettings):
     ENV: str = "development"
@@ -23,6 +24,7 @@ class Config(BaseSettings):
     SENTRY_SDN: str = None
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"
     CELERY_BACKEND_URL: str = "redis://localhost:6379/0"
+    REDIS_URI: str = _redis_uri
     REDIS_HOST: str = "localhost"
     REDIS_PORT: str = "6379"
 

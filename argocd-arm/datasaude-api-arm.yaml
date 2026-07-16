@@ -20,3 +20,6 @@ spec:
           name: datasaude-api
           ports:
             - containerPort: 8000
+          env:
+            - name: REDIS_URI
+              value: redis://redis.default.svc.cluster.local:6379/0

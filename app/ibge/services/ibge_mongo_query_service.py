@@ -6,6 +6,12 @@ from typing import Dict, List
 from pymongo.cursor import Cursor
 
 from api.ibge.v2.request.ibge import IbgeMongoQueryRequest
+from app.ibge.services.ibge_mongo_cache_service import (
+    get_cached_collection_count,
+    get_cached_query_response,
+    set_cached_collection_count,
+    set_cached_query_response,
+)
 from app.ibge.services.ibge_mongo_formula_service import (
     aplicar_formulas_customizadas,
     listar_formulas_customizadas,
@@ -54,17 +60,42 @@ def _executar_consulta_mongo(
     projection: Dict,
     skip: int,
     limit: int,
-) -> tuple:
+) -> List[Dict]:
     """Executa a consulta MongoDB de forma síncrona (para ser chamada via to_thread)."""
-    total_records = collection.count_documents(query)
     cursor: Cursor = (
         collection.find(query, projection)
         .sort("_id", 1)
         .skip(skip)
         .limit(limit)
     )
-    documentos = list(cursor)
-    return total_records, documentos
+    return list(cursor)
+
+
+def _contar_documentos_mongo(collection, query: Dict) -> int:
+    return collection.count_documents(query)
+
+
+def _build_count_signature(collection_name: str, query: Dict) -> Dict[str, str]:
+    return {
+        "collection_name": collection_name,
+        "cd_setor": query.get("cd_setor") or "",
+    }
+
+
+def _build_query_signature(
+    collection_name: str,
+    columns: List[str],
+    page: int,
+    limit: int,
+    query: Dict,
+) -> Dict:
+    return {
+        "collection_name": collection_name,
+        "columns": columns,
+        "page": page,
+        "limit": limit,
+        "cd_setor": query.get("cd_setor") or "",
+    }
 
 
 async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
@@ -90,15 +121,26 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
         if database is None:
             raise BadRequestException("Database MongoDB não configurado")
 
+        query = {}
+        if payload.cd_setor:
+            query["cd_setor"] = payload.cd_setor.strip()
+
+        query_signature = _build_query_signature(
+            collection_name=collection_name,
+            columns=columns,
+            page=page,
+            limit=limit,
+            query=query,
+        )
+        cached_response = await get_cached_query_response(query_signature)
+        if cached_response is not None:
+            return cached_response
+
         formulas = await asyncio.wait_for(
             listar_formulas_customizadas(),
             timeout=get_mongo_query_timeout(),
         )
         formula_dependencies = _extract_formula_dependencies(formulas)
-
-        query = {}
-        if payload.cd_setor:
-            query["cd_setor"] = payload.cd_setor.strip()
 
         projection = _build_projection(
             columns,
@@ -106,7 +148,20 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
         )
         collection = database[collection_name]
 
-        total_records, documentos = await asyncio.wait_for(
+        count_signature = _build_count_signature(collection_name, query)
+        total_records = await get_cached_collection_count(count_signature)
+        if total_records is None:
+            total_records = await asyncio.wait_for(
+                asyncio.to_thread(
+                    _contar_documentos_mongo,
+                    collection,
+                    query,
+                ),
+                timeout=get_mongo_query_timeout(),
+            )
+            await set_cached_collection_count(count_signature, total_records)
+
+        documentos = await asyncio.wait_for(
             asyncio.to_thread(
                 _executar_consulta_mongo,
                 collection,
@@ -126,7 +181,7 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
                 await aplicar_formulas_customizadas(documento, formulas=formulas)
             )
 
-        return {
+        response = {
             "collection_name": collection_name,
             "columns": columns,
             "cd_setor": query.get("cd_setor"),
@@ -136,5 +191,7 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
             "total_pages": ceil(total_records / limit) if total_records else 0,
             "payload": payload_rows,
         }
+        await set_cached_query_response(query_signature, response)
+        return response
     finally:
         client.close()
