@@ -73,6 +73,7 @@ def _serialize_formula(document: Dict) -> Dict:
         "id": str(document.get("_id")),
         "nome": document.get("nome"),
         "formula": document.get("formula"),
+        "collection_name": document.get("collection_name"),
         "ativa": document.get("ativa", True),
         "created_at": document.get("created_at"),
         "updated_at": document.get("updated_at"),
@@ -130,6 +131,7 @@ def _criar_formula_sync(payload: IbgeFormulaCustomizadaCreate) -> Dict:
         document = {
             "nome": formula_nome,
             "formula": formula_expressao,
+            "collection_name": payload.collection_name,
             "ativa": True,
             "created_at": now,
             "updated_at": now,
@@ -197,9 +199,13 @@ async def remover_formula_customizada(formula_id: str):
     await clear_ibge_v2_query_related_cache()
 
 
-async def aplicar_formulas_customizadas(payload: dict, formulas: Optional[List[Dict]] = None):
+async def aplicar_formulas_customizadas(payload: dict, formulas: Optional[List[Dict]] = None, collection_name: Optional[str] = None):
     active_formulas = formulas if formulas is not None else await listar_formulas_customizadas()
     for formula in active_formulas:
+        formula_collection = formula.get("collection_name")
+        # Se a fórmula tem collection_name definido e não corresponde à collection atual, pula
+        if formula_collection and collection_name and formula_collection != collection_name:
+            continue
         field_name = _sanitize_formula_name(formula["nome"])
         try:
             result = _safe_eval_formula(formula["formula"], payload)

@@ -178,7 +178,9 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
             documento.pop("_id", None)
             documento["cd_setor"] = documento.get("cd_setor")
             payload_rows.append(
-                await aplicar_formulas_customizadas(documento, formulas=formulas)
+                await aplicar_formulas_customizadas(
+                    documento, formulas=formulas, collection_name=collection_name
+                )
             )
 
         response = {

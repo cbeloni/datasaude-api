@@ -46,6 +46,7 @@ class IbgeFormulaCustomizadaBase(BaseModel):
     id: Optional[str] = None
     nome: str
     formula: str
+    collection_name: Optional[str] = None
     ativa: bool = True
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
@@ -54,6 +55,7 @@ class IbgeFormulaCustomizadaBase(BaseModel):
 class IbgeFormulaCustomizadaCreate(BaseModel):
     nome: str = Field(..., min_length=1, max_length=120)
     formula: str = Field(..., min_length=1, max_length=500)
+    collection_name: Optional[str] = Field(None, max_length=120)
 
 
 class IbgeFormulaCustomizadaListResponse(BaseModel):
