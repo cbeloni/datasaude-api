@@ -13,19 +13,24 @@ def get_mongo_uri() -> Optional[str]:
 
 
 def get_mongo_query_timeout() -> float:
-    """Timeout em segundos para operacoes MongoDB. Lê da env MONGODB_QUERY_TIMEOUT, default 60."""
-    raw = os.environ.get("MONGODB_QUERY_TIMEOUT") or "60"
+    """Timeout em segundos para operacoes MongoDB. Lê da env MONGODB_QUERY_TIMEOUT, default 300."""
+    raw = os.environ.get("MONGODB_QUERY_TIMEOUT") or "120"
     try:
         return float(raw)
     except (ValueError, TypeError):
-        return 60.0
+        return 120.0
 
 
 def get_mongo_client() -> MongoClient:
     uri = get_mongo_uri()
     if not uri:
         raise ValueError("MONGODB_URI não configurada")
-    return MongoClient(uri, serverSelectionTimeoutMS=5000)
+    server_timeout = os.environ.get("MONGODB_SERVER_SELECTION_TIMEOUT_MS") or "300000"
+    try:
+        server_timeout_ms = int(server_timeout)
+    except (ValueError, TypeError):
+        server_timeout_ms = 300000
+    return MongoClient(uri, serverSelectionTimeoutMS=server_timeout_ms)
 
 
 def get_mongo_database(client: MongoClient) -> Optional[Database]:

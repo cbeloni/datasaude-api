@@ -3,23 +3,11 @@ import click
 import uvicorn
 from core.config import config
 from app.server import app
-from fastapi.middleware.cors import CORSMiddleware
 from core.utils.logger import LoggerUtils
 
 logger = LoggerUtils("main")
-# Redirecionar a saída padrão (stdout) para o logger
-# sys.stdout = open('stdout.log', 'w')
-# sys.stderr = open('stderr.log', 'w')
 
 logger.info("Iniciando aplicação")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["*"],
-)
 
 @click.command()
 @click.option(
