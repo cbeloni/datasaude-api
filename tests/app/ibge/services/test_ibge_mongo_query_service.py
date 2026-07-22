@@ -81,7 +81,9 @@ def _load_query_service_module():
     _register_module(
         "app.ibge.services.ibge_mongo_formula_service",
         {
-            "aplicar_formulas_customizadas": lambda payload, formulas=None: payload,
+            "aplicar_formulas_customizadas": (
+                lambda payload, formulas=None, collection_name=None: payload
+            ),
             "listar_formulas_customizadas": lambda: [],
         },
     )
@@ -146,7 +148,9 @@ def cached_query_setup(monkeypatch):
     async def fake_listar_formulas_customizadas():
         return []
 
-    async def fake_aplicar_formulas_customizadas(payload, formulas=None):
+    async def fake_aplicar_formulas_customizadas(
+        payload, formulas=None, collection_name=None
+    ):
         return payload
 
     monkeypatch.setattr(service, "get_cached_query_response", fake_get_cached_query_response)
@@ -208,3 +212,20 @@ async def test_consultar_colecao_mongo_reusa_cache_de_count_entre_paginas(
 
     assert cached_query_setup.count_calls == 1
     assert cached_query_setup.find_calls == 2
+
+
+@pytest.mark.asyncio
+async def test_consultar_colecao_mongo_retorna_cd_setor_como_lista(
+    cached_query_setup,
+):
+    payload = SimpleNamespace(
+        collection_name="setores_alfabetizacao_br",
+        columns=["cd_setor", "v1"],
+        cd_setor=["110001505000002"],
+        page=1,
+        limit=10,
+    )
+
+    response = await service.consultar_colecao_mongo(payload)
+
+    assert response["cd_setor"] == ["110001505000002"]

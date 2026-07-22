@@ -5,7 +5,7 @@ from typing import Dict, List
 
 from pymongo.cursor import Cursor
 
-from api.ibge.v2.request.ibge import IbgeMongoQueryRequest
+from api.ibge.v2.request.ibge import IbgeMongoQueryRequest, IbgeMongoQueryResponse
 from app.ibge.services.ibge_mongo_cache_service import (
     get_cached_collection_count,
     get_cached_query_response,
@@ -110,6 +110,7 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
     page = payload.page
     limit = payload.limit
     skip = (page - 1) * limit
+    cd_setor_list = None
 
     try:
         client = get_mongo_client()
@@ -122,8 +123,12 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
             raise BadRequestException("Database MongoDB não configurado")
 
         query = {}
-        if payload.cd_setor:
-            query["cd_setor"] = payload.cd_setor.strip()
+        if payload.cd_setor and len(payload.cd_setor) > 0:
+            cd_setor_list = [s.strip() for s in payload.cd_setor if s.strip()]
+            if len(cd_setor_list) == 1:
+                query["cd_setor"] = cd_setor_list[0]
+            else:
+                query["cd_setor"] = {"$in": cd_setor_list}
 
         query_signature = _build_query_signature(
             collection_name=collection_name,
@@ -134,6 +139,10 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
         )
         cached_response = await get_cached_query_response(query_signature)
         if cached_response is not None:
+            if isinstance(cached_response.get("cd_setor"), str):
+                cached_response["cd_setor"] = (
+                    [cached_response["cd_setor"]] if cached_response["cd_setor"] else None
+                )
             return cached_response
 
         formulas = await asyncio.wait_for(
@@ -186,14 +195,20 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
         response = {
             "collection_name": collection_name,
             "columns": columns,
-            "cd_setor": query.get("cd_setor"),
+            "cd_setor": cd_setor_list,
             "page": page,
             "limit": limit,
             "total_records": total_records,
             "total_pages": ceil(total_records / limit) if total_records else 0,
             "payload": payload_rows,
         }
-        await set_cached_query_response(query_signature, response)
+
+        try:
+            IbgeMongoQueryResponse(**response)
+            await set_cached_query_response(query_signature, response)
+        except Exception:
+            pass
+
         return response
     finally:
         client.close()
