@@ -143,7 +143,10 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
                 cached_response["cd_setor"] = (
                     [cached_response["cd_setor"]] if cached_response["cd_setor"] else None
                 )
-            return cached_response
+            cached_payload = cached_response.get("payload", [])
+            cached_total = cached_response.get("total_records", 0)
+            if not (cached_total > 0 and len(cached_payload) == 0):
+                return cached_response
 
         formulas = await asyncio.wait_for(
             listar_formulas_customizadas(),
@@ -204,8 +207,9 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
         }
 
         try:
-            IbgeMongoQueryResponse(**response)
-            await set_cached_query_response(query_signature, response)
+            validated = IbgeMongoQueryResponse(**response)
+            if validated.total_records == 0 or len(validated.payload) > 0:
+                await set_cached_query_response(query_signature, response)
         except Exception:
             pass
 
