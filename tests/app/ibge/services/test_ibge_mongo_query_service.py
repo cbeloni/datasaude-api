@@ -11,6 +11,11 @@ import pytest
 class FakeCursor:
     def __init__(self, rows):
         self.rows = rows
+        self.max_time_ms_value = None
+
+    def max_time_ms(self, value):
+        self.max_time_ms_value = value
+        return self
 
     def sort(self, *args, **kwargs):
         return self
@@ -29,6 +34,7 @@ class FakeCollection:
     def __init__(self):
         self.count_calls = 0
         self.find_calls = 0
+        self.last_cursor = None
 
     def count_documents(self, query):
         self.count_calls += 1
@@ -36,7 +42,7 @@ class FakeCollection:
 
     def find(self, query, projection):
         self.find_calls += 1
-        return FakeCursor(
+        self.last_cursor = FakeCursor(
             [
                 {
                     "cd_setor": "123",
@@ -44,6 +50,7 @@ class FakeCollection:
                 }
             ]
         )
+        return self.last_cursor
 
 
 def _register_module(name, attributes=None):
@@ -60,11 +67,25 @@ def _load_query_service_module():
     root_dir = Path(__file__).resolve().parents[4]
     service_path = root_dir / "app/ibge/services/ibge_mongo_query_service.py"
 
+    class FakeResponse:
+        def __init__(self, **values):
+            self.payload = values["payload"]
+
     class BadRequestException(Exception):
         pass
 
     class NotFoundException(Exception):
         pass
+
+    class FakeLogger:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def info(self, *args, **kwargs):
+            return None
+
+        def warning(self, *args, **kwargs):
+            return None
 
     _register_module("app")
     _register_module("app.ibge")
@@ -72,9 +93,7 @@ def _load_query_service_module():
     _register_module(
         "app.ibge.services.ibge_mongo_cache_service",
         {
-            "get_cached_collection_count": lambda *args, **kwargs: None,
             "get_cached_query_response": lambda *args, **kwargs: None,
-            "set_cached_collection_count": lambda *args, **kwargs: None,
             "set_cached_query_response": lambda *args, **kwargs: None,
         },
     )
@@ -93,7 +112,10 @@ def _load_query_service_module():
     _register_module("api.ibge.v2.request")
     _register_module(
         "api.ibge.v2.request.ibge",
-        {"IbgeMongoQueryRequest": object},
+        {
+            "IbgeMongoQueryRequest": object,
+            "IbgeMongoQueryResponse": FakeResponse,
+        },
     )
     _register_module("core")
     _register_module(
@@ -103,6 +125,8 @@ def _load_query_service_module():
             "NotFoundException": NotFoundException,
         },
     )
+    _register_module("core.utils")
+    _register_module("core.utils.logger", {"LoggerUtils": FakeLogger})
     _register_module(
         "core.mongo",
         {
@@ -139,12 +163,6 @@ def cached_query_setup(monkeypatch):
     async def fake_set_cached_query_response(signature, response):
         cache[("query", json.dumps(signature, sort_keys=True, default=str))] = response
 
-    async def fake_get_cached_collection_count(signature):
-        return cache.get(("count", json.dumps(signature, sort_keys=True, default=str)))
-
-    async def fake_set_cached_collection_count(signature, total_records):
-        cache[("count", json.dumps(signature, sort_keys=True, default=str))] = total_records
-
     async def fake_listar_formulas_customizadas():
         return []
 
@@ -155,8 +173,6 @@ def cached_query_setup(monkeypatch):
 
     monkeypatch.setattr(service, "get_cached_query_response", fake_get_cached_query_response)
     monkeypatch.setattr(service, "set_cached_query_response", fake_set_cached_query_response)
-    monkeypatch.setattr(service, "get_cached_collection_count", fake_get_cached_collection_count)
-    monkeypatch.setattr(service, "set_cached_collection_count", fake_set_cached_collection_count)
     monkeypatch.setattr(service, "listar_formulas_customizadas", fake_listar_formulas_customizadas)
     monkeypatch.setattr(service, "aplicar_formulas_customizadas", fake_aplicar_formulas_customizadas)
     monkeypatch.setattr(
@@ -184,12 +200,12 @@ async def test_consultar_colecao_mongo_cacheia_resposta_repetida(cached_query_se
     second_response = await service.consultar_colecao_mongo(payload)
 
     assert first_response == second_response
-    assert cached_query_setup.count_calls == 1
+    assert cached_query_setup.count_calls == 0
     assert cached_query_setup.find_calls == 1
 
 
 @pytest.mark.asyncio
-async def test_consultar_colecao_mongo_reusa_cache_de_count_entre_paginas(
+async def test_consultar_colecao_mongo_executa_uma_consulta_por_pagina(
     cached_query_setup,
 ):
     first_payload = SimpleNamespace(
@@ -210,8 +226,23 @@ async def test_consultar_colecao_mongo_reusa_cache_de_count_entre_paginas(
     await service.consultar_colecao_mongo(first_payload)
     await service.consultar_colecao_mongo(second_payload)
 
-    assert cached_query_setup.count_calls == 1
+    assert cached_query_setup.count_calls == 0
     assert cached_query_setup.find_calls == 2
+
+
+@pytest.mark.asyncio
+async def test_consultar_colecao_mongo_aplica_max_time_ms(cached_query_setup):
+    payload = SimpleNamespace(
+        collection_name="setores_alfabetizacao_br",
+        columns=["cd_setor", "v1"],
+        cd_setor=None,
+        page=1,
+        limit=10,
+    )
+
+    await service.consultar_colecao_mongo(payload)
+
+    assert cached_query_setup.last_cursor.max_time_ms_value == 5000
 
 
 @pytest.mark.asyncio
