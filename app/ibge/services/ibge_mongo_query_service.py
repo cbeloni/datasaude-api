@@ -1,5 +1,6 @@
 import asyncio
 import ast
+import time
 from math import ceil
 from typing import Dict, List
 
@@ -18,6 +19,9 @@ from app.ibge.services.ibge_mongo_formula_service import (
 )
 from core.exceptions import BadRequestException
 from core.mongo import get_mongo_client, get_mongo_database, get_mongo_query_timeout
+from core.utils.logger import LoggerUtils
+
+log = LoggerUtils(__name__)
 
 
 def _normalize_columns(columns: List[str]) -> List[str]:
@@ -99,6 +103,7 @@ def _build_query_signature(
 
 
 async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
+    request_start = time.time()
     collection_name = payload.collection_name.strip()
     if not collection_name:
         raise BadRequestException("collection_name é obrigatório")
@@ -111,6 +116,12 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
     limit = payload.limit
     skip = (page - 1) * limit
     cd_setor_list = None
+
+    log.info(
+        f"[IBGE V2] Iniciando consulta | collection={collection_name} | "
+        f"page={page} | limit={limit} | has_cd_setor={bool(payload.cd_setor)} | "
+        f"columns={len(columns)}"
+    )
 
     try:
         client = get_mongo_client()
@@ -130,6 +141,7 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
             else:
                 query["cd_setor"] = {"$in": cd_setor_list}
 
+        t0 = time.time()
         query_signature = _build_query_signature(
             collection_name=collection_name,
             columns=columns,
@@ -138,6 +150,7 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
             query=query,
         )
         cached_response = await get_cached_query_response(query_signature)
+        t1 = time.time()
         if cached_response is not None:
             if isinstance(cached_response.get("cd_setor"), str):
                 cached_response["cd_setor"] = (
@@ -146,12 +159,28 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
             cached_payload = cached_response.get("payload", [])
             cached_total = cached_response.get("total_records", 0)
             if not (cached_total > 0 and len(cached_payload) == 0):
+                log.info(
+                    f"[IBGE V2] Cache HIT | collection={collection_name} | "
+                    f"page={page} | cache_time={t1-t0:.3f}s"
+                )
                 return cached_response
 
+        log.info(
+            f"[IBGE V2] Cache MISS | collection={collection_name} | "
+            f"page={page} | cache_check_time={t1-t0:.3f}s"
+        )
+
+        t2 = time.time()
         formulas = await asyncio.wait_for(
             listar_formulas_customizadas(),
             timeout=get_mongo_query_timeout(),
         )
+        t3 = time.time()
+        log.info(
+            f"[IBGE V2] Formulas carregadas | collection={collection_name} | "
+            f"qtd={len(formulas)} | time={t3-t2:.3f}s"
+        )
+
         formula_dependencies = _extract_formula_dependencies(formulas)
 
         projection = _build_projection(
@@ -160,19 +189,7 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
         )
         collection = database[collection_name]
 
-        count_signature = _build_count_signature(collection_name, query)
-        total_records = await get_cached_collection_count(count_signature)
-        if total_records is None:
-            total_records = await asyncio.wait_for(
-                asyncio.to_thread(
-                    _contar_documentos_mongo,
-                    collection,
-                    query,
-                ),
-                timeout=get_mongo_query_timeout(),
-            )
-            await set_cached_collection_count(count_signature, total_records)
-
+        t4 = time.time()
         documentos = await asyncio.wait_for(
             asyncio.to_thread(
                 _executar_consulta_mongo,
@@ -184,7 +201,14 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
             ),
             timeout=get_mongo_query_timeout(),
         )
+        t5 = time.time()
+        log.info(
+            f"[IBGE V2] Query MongoDB | collection={collection_name} | "
+            f"page={page} | skip={skip} | docs_retornados={len(documentos)} | "
+            f"time={t5-t4:.3f}s"
+        )
 
+        t6 = time.time()
         payload_rows = []
         for documento in documentos:
             documento.pop("_id", None)
@@ -194,6 +218,11 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
                     documento, formulas=formulas, collection_name=collection_name
                 )
             )
+        t7 = time.time()
+        log.info(
+            f"[IBGE V2] Aplicar formulas | collection={collection_name} | "
+            f"docs_qtd={len(payload_rows)} | time={t7-t6:.3f}s"
+        )
 
         response = {
             "collection_name": collection_name,
@@ -201,17 +230,27 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
             "cd_setor": cd_setor_list,
             "page": page,
             "limit": limit,
-            "total_records": total_records,
-            "total_pages": ceil(total_records / limit) if total_records else 0,
             "payload": payload_rows,
         }
 
+        t10 = time.time()
         try:
             validated = IbgeMongoQueryResponse(**response)
             if validated.total_records == 0 or len(validated.payload) > 0:
                 await set_cached_query_response(query_signature, response)
         except Exception:
             pass
+        t11 = time.time()
+        log.info(
+            f"[IBGE V2] Cache write | collection={collection_name} | "
+            f"page={page} | time={t11-t10:.3f}s"
+        )
+
+        total_time = time.time() - request_start
+        log.info(
+            f"[IBGE V2] Consulta finalizada | collection={collection_name} | "
+            f"page={page} | docs={len(payload_rows)} | total_time={total_time:.3f}s"
+        )
 
         return response
     finally:
