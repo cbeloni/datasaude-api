@@ -3,7 +3,9 @@ from typing import Optional, List
 from sqlalchemy import or_, select, and_
 
 from app.user.models import User
+from app.user.models import Permission, Role, RolePermission
 from app.user.schemas.user import LoginResponseSchema
+from app.user.services.password import hash_password, verify_password
 from core.db import Transactional, session
 from core.exceptions import (
     PasswordDoesNotMatchException,
@@ -47,7 +49,12 @@ class UserService:
         if is_exist:
             raise DuplicateEmailOrNicknameException
 
-        user = User(email=email, password=password1, nickname=nickname)
+        user = User(
+            email=email,
+            password=hash_password(password1),
+            nickname=nickname,
+            is_active=True,
+        )
         session.add(user)
 
     async def is_admin(self, user_id: int) -> bool:
@@ -56,18 +63,44 @@ class UserService:
         if not user:
             return False
 
-        if user.is_admin is False:
+        if not user.is_admin or not user.is_active:
             return False
 
         return True
 
+    async def has_permission(self, user_id: int, permission_code: str) -> bool:
+        query = select(User).where(User.id == user_id, User.is_active.is_(True))
+        user = (await session.execute(query)).scalars().first()
+        if not user:
+            return False
+        if user.is_admin:
+            return True
+        permission_query = (
+            select(Permission.id)
+            .join(RolePermission, RolePermission.permission_id == Permission.id)
+            .join(Role, Role.id == RolePermission.role_id)
+            .where(
+                RolePermission.role_id == user.role_id,
+                Role.is_active.is_(True),
+                Permission.code == permission_code,
+            )
+        )
+        return (await session.execute(permission_query)).scalar_one_or_none() is not None
+
     async def login(self, email: str, password: str) -> LoginResponseSchema:
         result = await session.execute(
-            select(User).where(and_(User.email == email, User.password == password))
+            select(User).where(User.email == email)
         )
         user = result.scalars().first()
-        if not user:
+        if not user or not user.is_active:
             raise UserNotFoundException
+
+        valid, needs_rehash = verify_password(password, user.password)
+        if not valid:
+            raise UserNotFoundException
+        if needs_rehash:
+            user.password = hash_password(password)
+            await session.flush()
 
         response = LoginResponseSchema(
             token=TokenHelper.encode(payload={"user_id": user.id}),

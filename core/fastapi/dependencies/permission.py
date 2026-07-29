@@ -6,7 +6,11 @@ from fastapi.openapi.models import APIKey, APIKeyIn
 from fastapi.security.base import SecurityBase
 
 from app.user.services import UserService
-from core.exceptions import CustomException, UnauthorizedException
+from core.exceptions import (
+    CustomException,
+    ForbiddenException,
+    UnauthorizedException,
+)
 
 
 class BasePermission(ABC):
@@ -35,6 +39,22 @@ class IsAdmin(BasePermission):
         return await UserService().is_admin(user_id=user_id)
 
 
+def HasPermission(permission_code: str):
+    class Permission(BasePermission):
+        exception = UnauthorizedException
+
+        async def has_permission(self, request: Request) -> bool:
+            user_id = request.user.id
+            if not user_id:
+                raise UnauthorizedException
+            if not await UserService().has_permission(user_id, permission_code):
+                raise ForbiddenException
+            return True
+
+    Permission.__name__ = f"HasPermission_{permission_code.replace('.', '_')}"
+    return Permission
+
+
 class AllowAll(BasePermission):
     async def has_permission(self, request: Request) -> bool:
         return True
@@ -48,6 +68,6 @@ class PermissionDependency(SecurityBase):
 
     async def __call__(self, request: Request):
         for permission in self.permissions:
-            cls = permission()
+            cls = permission() if isinstance(permission, type) else permission
             if not await cls.has_permission(request=request):
                 raise cls.exception

@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 
 from api.user.v1.request.user import LoginRequest
 from api.user.v1.response.user import LoginResponse
@@ -9,10 +9,12 @@ from app.user.schemas import (
     GetUserListResponseSchema,
     CreateUserRequestSchema,
     CreateUserResponseSchema,
+    MeResponseSchema,
 )
 from app.user.services import UserService
 from core.fastapi.dependencies import (
     PermissionDependency,
+    IsAuthenticated,
     IsAdmin,
 )
 
@@ -37,6 +39,7 @@ async def get_user_list(
     "",
     response_model=CreateUserResponseSchema,
     responses={"400": {"model": ExceptionResponseSchema}},
+    dependencies=[Depends(PermissionDependency([IsAdmin]))],
 )
 async def create_user(request: CreateUserRequestSchema):
     await UserService().create_user(**request.dict())
@@ -51,3 +54,15 @@ async def create_user(request: CreateUserRequestSchema):
 async def login(request: LoginRequest):
     token = await UserService().login(email=request.email, password=request.password)
     return {"token": token.token, "refresh_token": token.refresh_token}
+
+
+@user_router.get(
+    "/me",
+    response_model=MeResponseSchema,
+    responses={"400": {"model": ExceptionResponseSchema}},
+    dependencies=[Depends(PermissionDependency([IsAuthenticated]))],
+)
+async def get_current_user(request: Request):
+    from app.user.services.admin import UserAdminService
+
+    return await UserAdminService().get_me(request.user.id)
