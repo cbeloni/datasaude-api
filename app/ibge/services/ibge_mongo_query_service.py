@@ -7,7 +7,9 @@ from pymongo.cursor import Cursor
 
 from api.ibge.v2.request.ibge import IbgeMongoQueryRequest, IbgeMongoQueryResponse
 from app.ibge.services.ibge_mongo_cache_service import (
+    get_cached_collection_count,
     get_cached_query_response,
+    set_cached_collection_count,
     set_cached_query_response,
 )
 from app.ibge.services.ibge_mongo_formula_service import (
@@ -151,7 +153,10 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
                 and cached_total > 0
                 and len(cached_payload) == 0
             )
-            if not is_stale_empty_page:
+            # Respostas antigas em cache sem total_records devem ser
+            # recalculadas para garantir a consistência da contagem.
+            cache_missing_total = cached_total is None
+            if not is_stale_empty_page and not cache_missing_total:
                 log.info(
                     f"[IBGE V2] Cache HIT | collection={collection_name} | "
                     f"page={page} | cache_time={t1-t0:.3f}s"
@@ -218,12 +223,37 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
             f"docs_qtd={len(payload_rows)} | time={t7-t6:.3f}s"
         )
 
+        total_records = 0
+        count_signature = {
+            "collection_name": collection_name,
+            "cd_setor": query.get("cd_setor") or None,
+        }
+        cached_count = await get_cached_collection_count(count_signature)
+        if cached_count is not None:
+            total_records = int(cached_count)
+        else:
+            try:
+                total_records = int(
+                    await asyncio.wait_for(
+                        asyncio.to_thread(collection.count_documents, query),
+                        timeout=get_mongo_query_timeout(),
+                    )
+                )
+                await set_cached_collection_count(count_signature, total_records)
+            except Exception:
+                total_records = 0
+        log.info(
+            f"[IBGE V2] Contagem | collection={collection_name} | "
+            f"total_records={total_records} | filters={bool(query)}"
+        )
+
         response = {
             "collection_name": collection_name,
             "columns": columns,
             "cd_setor": cd_setor_list,
             "page": page,
             "limit": limit,
+            "total_records": total_records,
             "payload": payload_rows,
         }
 

@@ -20,7 +20,7 @@ class IbgeMongoQueryRequest(BaseModel):
     limit: int = Field(
         10,
         ge=1,
-        le=1000,
+        le=200000,
         description="Quantidade de registros por página",
     )
 
@@ -34,6 +34,10 @@ class IbgeMongoQueryResponse(BaseModel):
     )
     page: int = Field(..., description="Página atual")
     limit: int = Field(..., description="Quantidade de registros por página")
+    total_records: Optional[int] = Field(
+        0,
+        description="Total de registros considerando os filtros aplicados",
+    )
     payload: List[Dict[str, Any]] = Field(
         default_factory=list,
         description="Documentos retornados com projeção dinâmica",
