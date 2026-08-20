@@ -1,5 +1,6 @@
-import asyncio
 import ast
+import asyncio
+import re
 import time
 from typing import Dict, List
 
@@ -57,6 +58,14 @@ def _extract_formula_dependencies(formulas: List[Dict]) -> List[str]:
     return dependencies
 
 
+def _build_cd_setor_query(cd_setor_list: List[str]) -> Dict:
+    """Busca setores pelo início do código informado pelo usuário."""
+    regexes = [f"^{re.escape(cd_setor)}" for cd_setor in cd_setor_list]
+    if len(regexes) == 1:
+        return {"cd_setor": {"$regex": regexes[0]}}
+    return {"$or": [{"cd_setor": {"$regex": regex}} for regex in regexes]}
+
+
 def _executar_consulta_mongo(
     collection,
     query: Dict,
@@ -88,7 +97,7 @@ def _build_query_signature(
         "columns": columns,
         "page": page,
         "limit": limit,
-        "cd_setor": query.get("cd_setor") or "",
+        "query": query,
     }
 
 
@@ -126,10 +135,8 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
         query = {}
         if payload.cd_setor and len(payload.cd_setor) > 0:
             cd_setor_list = [s.strip() for s in payload.cd_setor if s.strip()]
-            if len(cd_setor_list) == 1:
-                query["cd_setor"] = cd_setor_list[0]
-            else:
-                query["cd_setor"] = {"$in": cd_setor_list}
+            if cd_setor_list:
+                query.update(_build_cd_setor_query(cd_setor_list))
 
         t0 = time.time()
         query_signature = _build_query_signature(
@@ -226,7 +233,7 @@ async def consultar_colecao_mongo(payload: IbgeMongoQueryRequest):
         total_records = 0
         count_signature = {
             "collection_name": collection_name,
-            "cd_setor": query.get("cd_setor") or None,
+            "query": query,
         }
         cached_count = await get_cached_collection_count(count_signature)
         if cached_count is not None:
